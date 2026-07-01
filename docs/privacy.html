@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Thriend or Faux</title>
+<link rel="icon" href="icon128.png">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <a class="crumb" href="index.html">← <span class="thriend">Thriend</span> or <span class="faux">Faux</span></a>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Effective July 1, 2026 · applies to Thriend or Faux v0.2.x</p>
+  </header>
+
+  <section>
+    <h2>The short version</h2>
+    <p>Thriend or Faux runs entirely in your browser. It has no servers, no accounts, no analytics, and no tracking. The extension's author receives <strong>no data whatsoever</strong>. The only party that receives any data is <strong>Anthropic</strong> — when you click "Analyze posts," a profile's public content is sent to the Claude API using <em>your own</em> API key.</p>
+  </section>
+
+  <section>
+    <h2>What's stored on your device</h2>
+    <ul>
+      <li><strong>Your Claude API key</strong> — kept in Chrome's local extension storage on your device. It is sent only to Anthropic's API (<code>api.anthropic.com</code>) to authenticate your requests, and nowhere else.</li>
+      <li><strong>Cached lookup results</strong> — stats and analyses for profiles you've looked up, kept locally for up to 12 hours (at most 150 entries) so repeat hovers are instant and don't cost you extra API calls.</li>
+    </ul>
+    <p>Uninstalling the extension deletes all of this. Nothing is synced to any cloud.</p>
+  </section>
+
+  <section>
+    <h2>Where data goes</h2>
+    <h3>Meta / Threads</h3>
+    <p>The extension sends nothing of its own to Meta. When you hover a username, it quietly opens that person's public profile and replies pages in background tabs to read their public posts — so Meta's logs see ordinary page visits from your browser, the same as if you had clicked through to the profile yourself.</p>
+    <h3>Anthropic</h3>
+    <p>When a profile is analyzed, the extension sends that profile's <em>public</em> information — username, bio, follower/following counts, and the text of recent public posts and replies — to Anthropic's Claude API, authenticated with your API key. This happens only for profiles you look up, and results are cached locally so the same profile isn't re-sent within 12 hours.</p>
+    <p>Your API usage is governed by Anthropic's own <a href="https://www.anthropic.com/legal/privacy">privacy policy</a> and commercial terms. Anthropic states that API inputs and outputs are not used to train its models by default.</p>
+    <h3>The extension's author &amp; everyone else</h3>
+    <p>Nothing. No analytics, no telemetry, no error reporting, no ads, no third-party scripts. The author cannot see who you look up, what verdicts you get, or that you use the extension at all.</p>
+    <p>In a future version, the extension <em>may</em> report very high-level, aggregated, fully anonymized usage numbers (for example, a total count of lookups) to help the author understand adoption. If that happens, this policy will be updated first, and it will never include anything identifying you or the people you look up.</p>
+  </section>
+
+  <section>
+    <h2>About the people you look up</h2>
+    <p>The extension only ever reads what is already public on Threads — public bios, public posts, public replies. It cannot see private accounts, DMs, or anything you couldn't see yourself by visiting the profile. Analyses are private decision-support shown only to you: by design, there is no feature for publicly sharing a negative assessment of another person.</p>
+  </section>
+
+  <section>
+    <h2>Chrome permissions, explained</h2>
+    <ul>
+      <li><strong>storage</strong> — to save your API key and the local results cache.</li>
+      <li><strong>tabs &amp; scripting</strong> — to open a profile's public page in a background tab and read the posts from it. Threads only delivers post content to a rendered page, so this is the only way to read it. These permissions are used solely on threads.com pages the extension itself opens.</li>
+      <li><strong>Host access to threads.com</strong> — to show the stats card on the site and fetch public profile pages.</li>
+      <li><strong>Host access to api.anthropic.com</strong> — to send analysis requests with your key.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Your choices</h2>
+    <ul>
+      <li>Remove or change your API key at any time in the extension's settings.</li>
+      <li>Uninstall the extension to delete the key and all cached data.</li>
+      <li>Analyses only happen when you click "Analyze posts" — hovering alone sends nothing to Anthropic.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Changes &amp; contact</h2>
+    <p>If this policy changes, the new version will be posted here with an updated effective date before the change takes effect.</p>
+    <p>Questions? Contact <a href="https://www.threads.com/@thatadamguy">@ThatAdamGuy on Threads</a>.</p>
+  </section>
+
+  <footer>
+    <nav>
+      <a href="index.html">Home</a> ·
+      <a href="known-issues.html">Known issues</a> ·
+      <a href="how-to-test.html">How to test</a> ·
+      <a href="faq.html">FAQ</a>
+    </nav>
+    <p class="disclaimer">Not affiliated with or endorsed by Meta or Anthropic.</p>
+  </footer>
+
+</div>
+</body>
+</html>

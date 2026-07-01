@@ -1,0 +1,420 @@
+/* panel.css - styles for the side panel and icon buttons injected into Threads */
+
+/* --- ToF floating panel (sits below the native hover card) --- */
+#tof-panel {
+  position: absolute;
+  z-index: 99999;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-top: 1px solid rgba(0,0,0,0.06);
+  border-radius: 0 0 14px 14px;
+  padding: 8px 16px 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  color: #111;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  display: none;
+  box-sizing: border-box;
+}
+
+#tof-panel.tof-visible {
+  display: block;
+}
+
+.tof-panel-close-x {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #bbb;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 2px;
+}
+
+.tof-panel-close-x:hover { color: #333; }
+
+.tof-card-header {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #999;
+  margin-bottom: 6px;
+}
+
+.tof-card-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+.tof-card-label {
+  color: #666;
+}
+
+.tof-card-value {
+  font-weight: 600;
+  color: #111;
+}
+
+.tof-fetching {
+  color: #aaa;
+  font-style: italic;
+}
+
+/* --- Floating eye button --- */
+/* position: absolute lets it float over the page without touching any layout */
+#tof-float-btn {
+  position: absolute;
+  z-index: 99998;
+  background: rgba(40, 40, 40, 0.85);
+  border: 1px solid #555;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  line-height: 20px;
+  text-align: center;
+  cursor: pointer;
+  padding: 0;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+#tof-float-btn.tof-visible {
+  display: block;
+  opacity: 1;
+}
+
+#tof-float-btn:hover {
+  background: rgba(80, 80, 80, 0.95);
+}
+
+/* --- Side panel --- */
+#tof-side-panel {
+  position: fixed;
+  top: 80px;
+  right: 16px;
+  width: 380px;
+  max-height: calc(100vh - 100px);
+  background: #fff;
+  color: #111;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  overflow-y: auto;
+  z-index: 9999;
+  transform: translateX(calc(100% + 24px));
+  transition: transform 0.25s ease;
+}
+
+#tof-side-panel.tof-visible {
+  transform: translateX(0);
+}
+
+#tof-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  position: sticky;
+  top: 0;
+  background: #fff;
+  border-radius: 14px 14px 0 0;
+}
+
+#tof-panel-title {
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tof-logo-thriend { color: #1a7a3a; }
+
+.tof-logo-or {
+  text-transform: none;
+  font-weight: 400;
+  font-size: 11px;
+  color: #bbb;
+  letter-spacing: 0;
+}
+
+.tof-logo-faux { color: #b83a00; }
+
+#tof-panel-close {
+  background: none;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0 2px;
+  line-height: 1;
+}
+
+#tof-panel-close:hover { color: #333; }
+
+#tof-panel-body {
+  padding: 16px;
+}
+
+/* --- Section shading (Meta data vs Claude analysis) --- */
+.tof-section-meta {
+  background: #fffbeb;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.tof-section-claude {
+  background: #fef3c7;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.tof-section-tag {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #b89a00;
+  text-align: right;
+  margin-bottom: 6px;
+}
+
+/* About section */
+#tof-about {
+  border-top: 1px solid rgba(0,0,0,0.08);
+  margin-top: 14px;
+  padding-top: 12px;
+  font-size: 11px;
+  color: #999;
+  line-height: 1.65;
+}
+#tof-about p { margin: 0 0 5px; }
+#tof-about p:last-child { margin: 0; }
+#tof-about a { color: #aaa; text-decoration: underline; }
+#tof-about a:hover { color: #666; }
+#tof-about em { font-style: normal; font-weight: 600; }
+
+.tof-version {
+  color: #ccc;
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  margin-top: 8px !important;
+}
+
+/* --- Profile header in side panel --- */
+.tof-profile h2 {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0 0 2px;
+}
+
+.tof-snapshot {
+  font-size: 10px;
+  font-weight: 400;
+  color: #aaa;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.tof-snapshot a {
+  color: #b89a00;
+  text-decoration: none;
+  margin-left: 4px;
+}
+.tof-snapshot a:hover { text-decoration: underline; }
+
+.tof-profile h2 a {
+  color: #111;
+  text-decoration: none;
+}
+
+.tof-profile h2 a:hover { text-decoration: underline; }
+
+.tof-profile-url {
+  font-size: 12px;
+  margin: 0 0 10px;
+}
+.tof-profile-url a {
+  color: #555;
+  text-decoration: none;
+}
+.tof-profile-url a:hover { text-decoration: underline; }
+
+.tof-bio {
+  font-size: 13px;
+  color: #666;
+  font-style: italic;
+  margin: 0 0 12px;
+  line-height: 1.4;
+}
+
+/* Followers vs following split bar */
+.tof-ff-viz {
+  margin: 6px 0 4px;
+}
+
+.tof-ff-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.tof-ff-labels strong {
+  font-size: 13px;
+  color: #111;
+}
+
+.tof-ff-bar {
+  position: relative;
+  display: flex;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  background: #eee;
+}
+
+.tof-ff-followers { background: #2e9e4f; }
+.tof-ff-following { background: #e0a13c; flex: 1; }
+
+/* center tick = the 1:1 balance point */
+.tof-ff-bar::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.tof-ff-ratio {
+  font-size: 11px;
+  color: #999;
+  text-align: center;
+  margin-top: 4px;
+}
+
+.tof-stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 4px;
+}
+
+.tof-stats-table tr {
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.tof-stats-table td {
+  padding: 6px 4px;
+  font-size: 13px;
+}
+
+.tof-stats-table td:first-child { color: #888; }
+
+.tof-stats-table td:last-child {
+  text-align: right;
+  font-weight: 600;
+  color: #111;
+}
+
+/* --- Utility states --- */
+.tof-loading {
+  color: #999;
+  font-style: italic;
+  margin-top: 16px;
+}
+
+.tof-error {
+  color: #c0392b;
+  margin-top: 16px;
+}
+
+.tof-small {
+  font-size: 12px;
+  margin-top: 16px;
+}
+
+/* Analyze button sits at the bottom of the hover card */
+.tof-analyze-btn {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+}
+.tof-analyze-btn:hover:not(:disabled) { background: #333; }
+.tof-analyze-btn:disabled { background: #888; cursor: default; }
+
+/* Analysis result — rendered inside light #tof-side-panel */
+.tof-verdict {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 16px 0 6px;
+  text-transform: capitalize;
+  color: #111;
+}
+.tof-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 2px 0 10px;
+}
+.tof-trait {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 999px;
+  text-transform: lowercase;
+}
+.tof-trait-pos { background: #e3f5e6; color: #1d6b32; }
+.tof-trait-neg { background: #fdeae3; color: #a33a13; }
+.tof-trait-neu { background: #ececec; color: #555; }
+
+.tof-summary {
+  color: #444;
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+.tof-replies-line {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 6px;
+}
+.tof-replies-line strong { color: #111; }
+
+.tof-topics {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 10px;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+.tof-list {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.tof-flags    { color: #c05000; }
+.tof-positives { color: #2a7a2a; }

@@ -1,0 +1,200 @@
+/* Shared styles for the Thriend or Faux microsite */
+
+:root {
+  --thriend: #1a7a3a;
+  --faux: #b83a00;
+  --ink: #111;
+  --muted: #666;
+  --faint: #999;
+  --amber-bg: #fffbeb;
+  --amber-deep: #fef3c7;
+  --amber-text: #b89a00;
+  --card-border: rgba(0,0,0,0.12);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: #fafaf7;
+  line-height: 1.6;
+  font-size: 16px;
+}
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px 48px;
+}
+
+/* --- Hero (home page) --- */
+header.hero {
+  text-align: center;
+  padding: 56px 0 36px;
+}
+header.hero img.logo {
+  width: 96px;
+  height: 96px;
+  border-radius: 22px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+}
+h1 {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  margin: 18px 0 6px;
+}
+h1 .thriend { color: var(--thriend); }
+h1 .or { font-weight: 400; font-size: 24px; color: #bbb; }
+h1 .faux { color: var(--faux); }
+.tagline {
+  font-size: 19px;
+  color: var(--muted);
+  margin: 0 auto;
+  max-width: 34em;
+}
+
+/* --- Primary nav (pill links under the hero) --- */
+nav.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 24px;
+}
+nav.site-nav a {
+  padding: 7px 18px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 0.12s, color 0.12s;
+}
+nav.site-nav a:hover {
+  border-color: var(--thriend);
+  color: var(--thriend);
+}
+
+/* --- Subpage header --- */
+header.page {
+  padding: 32px 0 8px;
+}
+header.page .crumb {
+  font-size: 13px;
+  text-decoration: none;
+  color: var(--faint);
+}
+header.page .crumb:hover { color: var(--muted); }
+header.page .crumb .thriend { color: var(--thriend); font-weight: 700; }
+header.page .crumb .faux { color: var(--faux); font-weight: 700; }
+header.page h1 {
+  font-size: 27px;
+  margin: 14px 0 2px;
+}
+.updated {
+  color: var(--faint);
+  font-size: 13px;
+  margin: 0 0 24px;
+}
+
+/* --- Sections --- */
+section {
+  background: #fff;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  padding: 24px 28px;
+  margin-bottom: 20px;
+}
+h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--amber-text);
+  margin: 0 0 12px;
+}
+h3 {
+  font-size: 16px;
+  margin: 18px 0 6px;
+}
+h3:first-of-type { margin-top: 0; }
+p { margin: 0 0 12px; }
+p:last-child, ul:last-child { margin-bottom: 0; }
+ul { margin: 0 0 12px; padding-left: 22px; }
+li { margin-bottom: 6px; }
+a { color: var(--thriend); }
+a:hover { color: #135c2b; }
+
+.beta-note {
+  background: var(--amber-bg);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+}
+.beta-note strong { color: var(--faux); }
+
+.browser-list { list-style: none; padding-left: 4px; }
+.browser-list li { padding-left: 2px; }
+
+.cost {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.coming-soon {
+  color: var(--faint);
+  font-style: italic;
+}
+
+/* --- Screenshots --- */
+.shots {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.shots figure {
+  flex: 1 1 280px;
+  max-width: 330px;
+  margin: 0;
+}
+.shots img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  background: #fff;
+}
+.shots figcaption {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 8px;
+  line-height: 1.45;
+}
+
+/* --- Footer --- */
+footer {
+  text-align: center;
+  font-size: 13px;
+  color: var(--faint);
+  padding-top: 12px;
+  line-height: 1.8;
+}
+footer a { color: var(--faint); }
+footer .disclaimer { font-size: 12px; }
+footer nav {
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+footer nav a {
+  color: var(--muted);
+  text-decoration: none;
+  margin: 0 8px;
+}
+footer nav a:hover { text-decoration: underline; }

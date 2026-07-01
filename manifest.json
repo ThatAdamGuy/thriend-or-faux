@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "Thriend Or Faux",
+  "version": "0.2.1",
+  "description": "Profile insights for Threads.com",
+
+  "permissions": [
+    "storage",
+    "tabs",
+    "scripting"
+  ],
+
+  "host_permissions": [
+    "https://www.threads.com/*",
+    "https://api.anthropic.com/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "action": {
+    "default_popup": "settings.html",
+    "default_title": "Thriend Or Faux Settings"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["https://www.threads.com/*"],
+      "js": ["content.js"],
+      "css": ["panel.css"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": ["about.html"],
+      "matches": ["https://www.threads.com/*"]
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Known issues &amp; limitations — Thriend or Faux</title>
+<link rel="icon" href="icon128.png">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <a class="crumb" href="index.html">← <span class="thriend">Thriend</span> or <span class="faux">Faux</span></a>
+    <h1>Known issues &amp; limitations</h1>
+    <p class="updated">Last updated July 1, 2026 · v0.2.0</p>
+  </header>
+
+  <section>
+    <h2>By design</h2>
+    <h3>Recency bias</h3>
+    <p>Claude only sees the posts and replies that Threads shows on the first screen of a profile — typically the <strong>10–25 most recent</strong> of each. A person's older history, best moments, and worst moments may all be invisible. Someone having an unusually good (or bad) week may be judged on exactly that week.</p>
+    <h3>Text only</h3>
+    <p>Images, videos, and link previews are invisible to the analysis. A photo-heavy account can come across as low-signal or "quiet" even if it's wonderful, and a post whose meaning depends on an attached image may be misread.</p>
+    <h3>Results are cached for 12 hours</h3>
+    <p>To keep things fast and cheap, a profile's card is reused for up to 12 hours. If someone's behavior changed an hour ago, the card may not reflect it — use the ↻ refresh link on the panel to force a fresh look.</p>
+    <h3>It's one AI's opinion of a small sample</h3>
+    <p>The verdict is Claude's frank read of a handful of recent public posts. Treat it as decision support, not a character reference. It can be wrong — in both directions.</p>
+  </section>
+
+  <section>
+    <h2>Current limitations</h2>
+    <ul>
+      <li><strong>Public profiles only.</strong> Private accounts can't be analyzed (the extension can only read what you could see yourself).</li>
+      <li><strong>English only (for now).</strong> The extension has been tested only in browsers set to English, and analysis quality of non-English posts is untested.</li>
+      <li><strong>Slow connections can time out.</strong> Reading a profile's posts takes up to ~25 seconds; on slow networks the lookup may give up and you'll need to retry.</li>
+      <li><strong>Background tabs.</strong> Each analysis briefly opens two invisible background tabs (the profile and its replies page) to read public posts. They close automatically — but if you're a tab-strip watcher, you may catch a flicker.</li>
+      <li><strong>Desktop Chromium only.</strong> No Firefox, Safari, Opera, Atlas, or mobile support. See the <a href="index.html">home page</a> for the tested-browser list.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Found something else?</h2>
+    <p>Testers: please report anything odd — wrong stats, stuck "fetching…" states, weird verdicts — to <a href="https://www.threads.com/@thatadamguy">@ThatAdamGuy</a>. Screenshots and the profile involved help a lot.</p>
+  </section>
+
+  <footer>
+    <nav>
+      <a href="index.html">Home</a> ·
+      <a href="how-to-test.html">How to test</a> ·
+      <a href="faq.html">FAQ</a> ·
+      <a href="privacy.html">Privacy policy</a>
+    </nav>
+    <p class="disclaimer">Not affiliated with or endorsed by Meta or Anthropic.</p>
+  </footer>
+
+</div>
+</body>
+</html>

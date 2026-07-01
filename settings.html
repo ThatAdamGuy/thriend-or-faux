@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Thriend Or Faux — Settings</title>
+  <style>
+    body {
+      width: 300px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      background: #111;
+      color: #e8e8e8;
+    }
+
+    h1 {
+      font-size: 16px;
+      margin: 0 0 4px;
+    }
+
+    p.subtitle {
+      color: #888;
+      font-size: 12px;
+      margin: 0 0 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: #aaa;
+      margin-bottom: 4px;
+    }
+
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      box-sizing: border-box;
+      background: #1e1e1e;
+      border: 1px solid #444;
+      border-radius: 6px;
+      color: #e8e8e8;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .row input {
+      flex: 1;
+    }
+
+    button {
+      background: #333;
+      border: 1px solid #555;
+      border-radius: 6px;
+      color: #e8e8e8;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      background: #444;
+    }
+
+    #status {
+      font-size: 12px;
+      color: #6dbf6d;
+      min-height: 18px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #666;
+      margin: 20px 0 8px;
+      border-top: 1px solid #222;
+      padding-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Thriend Or Faux 🔍</h1>
+  <p class="subtitle">Settings</p>
+
+  <label for="api-key">Anthropic API Key</label>
+  <div class="row">
+    <input type="password" id="api-key" placeholder="sk-ant-..." />
+    <button id="paste-btn" title="Paste from clipboard">📋</button>
+    <button id="toggle-visibility">Show</button>
+  </div>
+
+  <button id="save-btn">Save</button>
+  <p id="status"></p>
+
+  <p class="section-title">About</p>
+  <p style="color:#666; font-size:12px; line-height:1.5;">
+    Your API key is stored locally in Chrome and never sent anywhere except directly to Anthropic when analyzing a profile.
+  </p>
+
+  <script src="settings.js"></script>
+</body>
+</html>

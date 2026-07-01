@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thriend or Faux — know who you&#8217;re talking to on Threads</title>
+<meta name="description" content="A Chrome extension for Threads that shows quick stats and a frank AI summary of any profile you hover — so you can engage with the people worth engaging with.">
+<link rel="icon" href="icon128.png">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img class="logo" src="icon128.png" alt="Thriend or Faux logo">
+    <h1><span class="thriend">Thriend</span> <span class="or">or</span> <span class="faux">Faux</span></h1>
+    <p class="tagline">Know who you're talking to on Threads — before you hit reply.</p>
+    <nav class="site-nav">
+      <a href="known-issues.html">Known issues</a>
+      <a href="how-to-test.html">How to test</a>
+      <a href="faq.html">FAQ</a>
+      <a href="privacy.html">Privacy</a>
+    </nav>
+  </header>
+
+  <section>
+    <h2>What it does</h2>
+    <p>Improve your Threads experience by interacting more often with open, kind, and interesting people.</p>
+    <p>With just one click, Thriend or Faux helps you better understand a fellow Threads community member — sharing quick stats about their involvement on the service, plus a brief, frank summary of <em>what</em> they write about and <em>how</em> they engage with others.</p>
+  </section>
+
+  <section>
+    <h2>See it in action</h2>
+    <div class="shots">
+      <figure>
+        <img src="img/hover-panel.png" alt="Hovering a username on Threads: the native hover card appears with the Thriend or Faux stats panel attached below it, showing follower counts, ratio, and an Analyze posts button.">
+        <figcaption>Hover any username — quick stats appear right under the native card.</figcaption>
+      </figure>
+      <figure>
+        <img src="img/side-panel.png" alt="The Thriend or Faux side panel showing Threads stats for a profile plus a Claude AI assessment: a Genuine · Earnest verdict, trait chips, a summary of topics, and a list of positives.">
+        <figcaption>Click "Analyze posts" for Claude's frank read: verdict, traits, and how they treat people in the replies.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Availability &amp; requirements</h2>
+    <div class="beta-note">
+      <strong>Currently available only to a very limited set of people for testing purposes.</strong>
+      You can <a href="https://forms.gle/4QQUTP69z9Ebgtzc9">request to be notified</a> if and when it becomes more broadly available.
+    </div>
+    <ul>
+      <li>Works only in desktop/laptop Chrome and (most) Chromium browsers:
+        <ul class="browser-list">
+          <li>✅ Chrome, Chrome Beta, and Comet (tested on Mac)</li>
+          <li>❌ Atlas, Firefox, Opera, Safari</li>
+          <li>❌ Threads mobile apps and Threads on mobile web</li>
+        </ul>
+      </li>
+      <li>You bring your own <a href="https://platform.claude.com/">Claude API key</a>. <span class="cost">Expect costs of approximately 0.3&nbsp;cents ($0.003) per profile analyzed.</span></li>
+      <li>Tested only in browsers set to English.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Privacy</h2>
+    <p>Short version: the extension sends nothing to Meta, nothing to the extension's author, and profile text to Anthropic (via <em>your own</em> API key) only when you ask for an analysis.</p>
+    <ul>
+      <li><strong>Meta</strong> sees only what it would see anyway: which profiles you've hovered over, and your browser loading a person's profile page (the extension quietly opens their public profile to read their public posts and replies).</li>
+      <li><strong>Anthropic</strong> receives a profile's public bio, posts, and replies when you click "Analyze" — sent using your own Claude API key, under Anthropic's API terms. That's the only place any data goes.</li>
+      <li><strong>The extension's author</strong> receives nothing. In the future, the extension may report very high-level, aggregated, 100% anonymized usage numbers (total users, total lookups) — never anything identifying you or the people you look up.</li>
+    </ul>
+    <p>Full details in the <a href="privacy.html">privacy policy</a>.</p>
+  </section>
+
+  <footer>
+    <nav>
+      <a href="known-issues.html">Known issues</a> ·
+      <a href="how-to-test.html">How to test</a> ·
+      <a href="faq.html">FAQ</a> ·
+      <a href="privacy.html">Privacy policy</a>
+    </nav>
+    <p>Made by <a href="https://www.threads.com/@thatadamguy">@ThatAdamGuy</a> and Claude.</p>
+    <p class="disclaimer">Not affiliated with or endorsed by Meta or Anthropic.<br>
+    AI analysis is generated in real time by Claude and may contain errors — use your own judgment.</p>
+  </footer>
+
+</div>
+</body>
+</html>
