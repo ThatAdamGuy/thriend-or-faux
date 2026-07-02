@@ -28,6 +28,14 @@ function onPostsReady(entry, cb) {
   else entry.callbacks.push(cb);
 }
 
+// Escape untrusted text before interpolating into innerHTML templates. Bios are
+// attacker-controlled (and we decode their HTML entities for emoji), and Claude
+// output is derived from attacker-controlled posts — all of it goes through here.
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
 // --- Hover card (quick stats) ---
 
 function getOrCreatePanel() {
@@ -315,12 +323,19 @@ function openSidePanel(username, profileData, postsEntry, forceAnalysis = false)
   const statsRows = rows.map(([l, v]) => `<tr><td>${l}</td><td>${v}</td></tr>`).join("");
 
   const bioHtml = profileData.bio
-    ? `<p class="tof-bio">"${profileData.bio}"</p>` : "";
-  const urlDisplay = profileData.externalUrl
-    ? profileData.externalUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")
+    ? `<p class="tof-bio">"${esc(profileData.bio)}"</p>` : "";
+
+  // Profile links are user-controlled: force http(s) only (no javascript: etc.),
+  // treating scheme-less values as https.
+  let rawUrl = profileData.externalUrl ?? null;
+  if (rawUrl && !/^https?:\/\//i.test(rawUrl)) {
+    rawUrl = /^[a-z][a-z0-9+.-]*:/i.test(rawUrl) ? null : "https://" + rawUrl;
+  }
+  const urlDisplay = rawUrl
+    ? rawUrl.replace(/^https?:\/\//i, "").replace(/\/$/, "")
     : null;
   const urlHtml = urlDisplay
-    ? `<p class="tof-profile-url"><a href="${profileData.externalUrl}" target="_blank">🔗 ${urlDisplay}</a></p>`
+    ? `<p class="tof-profile-url"><a href="${esc(rawUrl)}" target="_blank" rel="noopener noreferrer">🔗 ${esc(urlDisplay)}</a></p>`
     : "";
 
   content.innerHTML = `
@@ -350,7 +365,11 @@ function openSidePanel(username, profileData, postsEntry, forceAnalysis = false)
   function showAnalysisError(msg, retry) {
     const area = document.getElementById("tof-analysis-area");
     if (!area) return;
-    area.innerHTML = `<p class="tof-error">${msg}</p>`;
+    area.innerHTML = "";
+    const p = document.createElement("p");
+    p.className = "tof-error";
+    p.textContent = msg; // error text can echo API response bodies — never innerHTML it
+    area.appendChild(p);
     const btn = document.createElement("button");
     btn.className   = "tof-analyze-btn";
     btn.textContent = "Try again";
@@ -441,11 +460,11 @@ function renderAnalysis(r, container, replyFreq) {
     const cls = valence === "positive" ? "tof-trait-pos"
               : valence === "negative" ? "tof-trait-neg"
               : "tof-trait-neu";
-    return `<span class="tof-trait ${cls}">${word}</span>`;
+    return `<span class="tof-trait ${cls}">${esc(word)}</span>`;
   }).join("");
-  const flags     = (r.flags     ?? []).map(f => `<li>⚠️ ${f}</li>`).join("");
-  const positives = (r.positives ?? []).map(p => `<li>✓ ${p}</li>`).join("");
-  const topics    = (r.topics    ?? []).join(" · ");
+  const flags     = (r.flags     ?? []).map(f => `<li>⚠️ ${esc(f)}</li>`).join("");
+  const positives = (r.positives ?? []).map(p => `<li>✓ ${esc(p)}</li>`).join("");
+  const topics    = (r.topics    ?? []).map(esc).join(" · ");
 
   // "Replies: Frequently, warmly, and supportively" — frequency from data, style from
   // Claude. Claude may return its own conjunction ("warmly and supportively"), so split
@@ -465,10 +484,10 @@ function renderAnalysis(r, container, replyFreq) {
   }
 
   container.innerHTML = `
-    <div class="tof-verdict">${emoji} <strong>${r.verdict}</strong> · <em>${r.tone ?? ""}</em></div>
+    <div class="tof-verdict">${emoji} <strong>${esc(r.verdict)}</strong> · <em>${esc(r.tone ?? "")}</em></div>
     ${traits      ? `<div class="tof-traits">${traits}</div>`                                : ""}
-    <div class="tof-summary">${r.summary ?? ""}</div>
-    ${repliesLine ? `<div class="tof-replies-line">↩ Replies: <strong>${repliesLine}</strong></div>` : ""}
+    <div class="tof-summary">${esc(r.summary ?? "")}</div>
+    ${repliesLine ? `<div class="tof-replies-line">↩ Replies: <strong>${esc(repliesLine)}</strong></div>` : ""}
     ${topics      ? `<div class="tof-topics">${topics}</div>`                                : ""}
     ${flags       ? `<ul class="tof-list tof-flags">${flags}</ul>`                           : ""}
     ${positives   ? `<ul class="tof-list tof-positives">${positives}</ul>`                   : ""}
@@ -488,7 +507,9 @@ function extractUsernameFromCard(card) {
 
 function extractFollowersFromCard(card) {
   const text = card.textContent || "";
-  const m = text.match(/([\d][.\d]*[KMBkmb]?)\s+followers/i);
+  // Threads shows exact comma-grouped counts under ~10K (e.g. "3,093") and
+  // abbreviated K/M/B forms above that (e.g. "54.3K") — the class needs both.
+  const m = text.match(/([\d][\d,.]*[KMBkmb]?)\s+followers/i);
   return m ? m[1] : null;
 }
 

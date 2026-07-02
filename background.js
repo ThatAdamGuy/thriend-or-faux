@@ -248,6 +248,7 @@ Rules:
 - If following >> followers (ratio below 0.1x), flag it.
 - Keep summary focused on content topics, not activity level.
 - replyStyle must be judged ONLY from their replies to others (never from their posts); use an empty string if replies are unavailable or none exist.
+- tone, traits, and replyStyle each show up as their own line on the card — don't reuse the same word (or an obvious variant like pedantic/pedantically) across more than one of them. Pick distinct descriptors for each so the card doesn't feel repetitive.
 
 Report your assessment by calling the report_verdict tool.`;
 

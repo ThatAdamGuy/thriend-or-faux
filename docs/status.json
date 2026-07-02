@@ -1,7 +1,7 @@
 {
   "killSwitch": false,
   "killMessage": "Thriend or Faux has been shut down by its author. Thank you for testing! Details: https://thatadamguy.github.io/thriend-or-faux/",
-  "latestVersion": "0.2.2",
+  "latestVersion": "0.2.1",
   "minVersion": "0.2.0",
   "updateNote": ""
 }
