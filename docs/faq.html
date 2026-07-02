@@ -13,19 +13,53 @@
   <header class="page">
     <a class="crumb" href="index.html">← <span class="thriend">Thriend</span> or <span class="faux">Faux</span></a>
     <h1>FAQ</h1>
-    <p class="updated">Coming soon</p>
+    <p class="updated">Last updated July 2, 2026</p>
   </header>
 
   <section>
-    <h2>Questions we'll answer here</h2>
-    <ul class="coming-soon-list">
-      <li>Why do I need my own Claude API key?</li>
-      <li>Can people tell I looked them up?</li>
-      <li>Why isn't there a Firefox / Safari / mobile version?</li>
-      <li>Can I run it on my own profile?</li>
-      <li>What does a verdict actually mean?</li>
-    </ul>
-    <p class="coming-soon">This page is a placeholder — in the meantime, the <a href="index.html">home page</a> and <a href="known-issues.html">known issues</a> cover the essentials.</p>
+    <h2>Cost &amp; setup</h2>
+    <h3>Why do I need my own Claude API key?</h3>
+    <p>The extension has no server of its own — there's no shared account, no bill the author pays on your behalf, and nothing routed through anyone else's infrastructure. Your key talks directly to Anthropic. It also means you're never sharing usage or cost with other testers: what you look up is yours alone. Setup takes a couple of minutes — see <a href="how-to-test.html">how to test</a>.</p>
+    <h3>Other than the API access costs, are there any costs associated with this extension?</h3>
+    <p>No, and there are no plans to charge money for it or show ads in it.</p>
+  </section>
+
+  <section>
+    <h2>Privacy</h2>
+    <h3>Can people tell I looked them up?</h3>
+    <p>No. Threads doesn't have a "who viewed your profile" feature, so a lookup looks exactly like you visiting their profile page in a browser tab — because that's functionally what's happening behind the scenes. See the <a href="privacy.html">privacy policy</a> for the full breakdown of what goes where.</p>
+    <h3>What happens to my data if I uninstall?</h3>
+    <p>Everything the extension stores — your API key and the local results cache — lives only in Chrome's local storage for that extension. Uninstalling deletes it immediately. Nothing was ever stored anywhere else to begin with.</p>
+  </section>
+
+  <section>
+    <h2>Using it</h2>
+    <h3>What does a verdict actually mean?</h3>
+    <p>It's Claude's frank read of a person's recent public posts and replies — genuine, mixed, or suspicious, plus trait chips and a plain-language summary. It's meant as decision support for whether engaging with someone seems worthwhile, not a moral judgment or a character reference: it's one AI's opinion of a small, recent sample (see <a href="known-issues.html">known issues</a> for the caveats), and verdicts are private to you.</p>
+    <h3>Can I run it on my own profile?</h3>
+    <p>Yes — hover your own username anywhere it appears on Threads (in a comment thread, a followers list, etc.) and it works the same as looking up anyone else. A dedicated one-click "Analyze me" shortcut is on the wishlist but not built yet; check the <a href="changelog.html">changelog</a> for what's shipped.</p>
+  </section>
+
+  <section>
+    <h2>Confidentiality</h2>
+    <h3>Can I talk about this extension with others?</h3>
+    <p>Yes, absolutely — thanks for asking :) One thing to flag: as a Trusted Tester, please share any vulnerabilities or other serious issues with me privately first, rather than posting about them publicly, so they can get fixed before anyone else stumbles on them.</p>
+    <h3>May I share screenshots of ToF cards publicly?</h3>
+    <p>Yes, that's fine — just please lean toward doing so in a kind, supportive way. Sharing a positive card with someone can genuinely make their day.</p>
+  </section>
+
+  <section>
+    <h2>Getting involved</h2>
+    <h3>May I invite others to install the extension?</h3>
+    <p>Since every tester has to be added to the trusted-tester list before the Chrome Web Store will let them install it, please point interested folks to <a href="index.html">this site</a> and the <a href="https://forms.gle/4QQUTP69z9Ebgtzc9">interest form</a> rather than sharing the extension itself directly.</p>
+    <h3>How can I offer feedback?</h3>
+    <p>Bug reports and feature suggestions are very welcome! Please send them via Threads DM to <a href="https://www.threads.com/@thatadamguy">@thatadamguy</a>. Heads up: he'll need to approve your first message before you can attach screenshots (a Threads message-request limitation, not a personal thing!), and since he has a day job, thanks in advance for your patience :)</p>
+  </section>
+
+  <section>
+    <h2>Platform support</h2>
+    <h3>Why isn't there a Firefox / Safari / mobile version?</h3>
+    <p>The extension has to read posts that Threads only renders client-side, which it does by briefly opening background tabs and scripting them — machinery built on Chrome's extension APIs specifically. Safari has its own separate extension system that would need its own build, and mobile browsers (plus the Threads apps) don't support extensions at all. Nothing's ruled out forever, but it's not currently planned.</p>
   </section>
 
   <footer>
