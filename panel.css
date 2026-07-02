@@ -202,6 +202,18 @@
 #tof-about a:hover { color: #666; }
 #tof-about em { font-style: normal; font-weight: 600; }
 
+/* ThriendOrFaux.com brand link in the about footer */
+.tof-site-link { margin-top: 8px !important; }
+#tof-about .tof-site-link a {
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  text-decoration: none;
+}
+#tof-about .tof-site-link a:hover { text-decoration: underline; color: #555; }
+.tof-site-link .tsl-t { color: #1a7a3a; }
+.tof-site-link .tsl-f { color: #b83a00; }
+
 .tof-version {
   color: #ccc;
   font-size: 10px;
