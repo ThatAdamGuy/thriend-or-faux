@@ -423,18 +423,25 @@ function refreshProfile(username) {
   }
 }
 
-// Trait coloring — keep in sync with TRAIT_VOCAB categories in background.js
-const TRAITS_POSITIVE = new Set(["kind", "supportive", "funny", "witty", "insightful", "curious", "generous", "welcoming", "thoughtful", "playful", "knowledgeable", "creative", "earnest", "upbeat", "helpful"]);
-const TRAITS_NEGATIVE = new Set(["angry", "combative", "snarky", "dismissive", "inflammatory", "spammy", "self-absorbed", "trollish", "bitter", "condescending", "crude"]);
+// Legacy trait coloring — only for analyses cached before traits carried their own
+// valence (they were bare strings judged against these fixed lists). New analyses
+// arrive as {word, valence} with the valence judged by Claude in context.
+const LEGACY_TRAITS_POSITIVE = new Set(["kind", "supportive", "funny", "witty", "insightful", "curious", "generous", "welcoming", "thoughtful", "playful", "knowledgeable", "creative", "earnest", "upbeat", "helpful"]);
+const LEGACY_TRAITS_NEGATIVE = new Set(["angry", "combative", "snarky", "dismissive", "inflammatory", "spammy", "self-absorbed", "trollish", "bitter", "condescending", "crude"]);
 
 function renderAnalysis(r, container, replyFreq) {
   const verdictEmoji = { genuine: "🟢", mixed: "🟡", suspicious: "🔴" };
   const emoji  = verdictEmoji[r.verdict] ?? "⚪";
   const traits = (r.traits ?? []).map(t => {
-    const cls = TRAITS_POSITIVE.has(t) ? "tof-trait-pos"
-              : TRAITS_NEGATIVE.has(t) ? "tof-trait-neg"
+    const word = typeof t === "string" ? t : t?.word;
+    if (!word) return "";
+    const valence = typeof t === "string"
+      ? (LEGACY_TRAITS_POSITIVE.has(t) ? "positive" : LEGACY_TRAITS_NEGATIVE.has(t) ? "negative" : "neutral")
+      : t.valence;
+    const cls = valence === "positive" ? "tof-trait-pos"
+              : valence === "negative" ? "tof-trait-neg"
               : "tof-trait-neu";
-    return `<span class="tof-trait ${cls}">${t}</span>`;
+    return `<span class="tof-trait ${cls}">${word}</span>`;
   }).join("");
   const flags     = (r.flags     ?? []).map(f => `<li>⚠️ ${f}</li>`).join("");
   const positives = (r.positives ?? []).map(p => `<li>✓ ${p}</li>`).join("");

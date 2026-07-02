@@ -16,7 +16,7 @@ Chrome MV3 extension for **threads.com** by Adam (@thatadamguy on Threads). Hove
 - Persistent cache: `chrome.storage.local`, keys `tof_c_*`, 12h TTL, 150-entry cap. ↻ refresh link on the panel force-refetches.
 - **Remote status / kill switch** (v0.2.2+): background.js fetches `docs/status.json` from the GitHub Pages site (no extra permission — GH Pages sends open CORS) on SW wake, throttled 6h, cached under `tof_status`, **fail-open**. `killSwitch:true` → background refuses the three data messages, content.js shows a notice panel. `minVersion` → hard block + "Update now" button; `latestVersion` → soft nudge (hover panel + side-panel version line). Update button → `REQUEST_UPDATE` message → `chrome.runtime.requestUpdateCheck()`; `onUpdateAvailable` → `reload()`. Actuate by editing status.json and pushing.
 - `panel.css`, `settings.html/js` (API-key popup), `about.html` (panel footer text; version line auto-appended from manifest).
-- **Trait vocabulary lives in two places that must stay in sync**: enum in `background.js` (`TRAIT_VOCAB`), color sets in `content.js` (`TRAITS_POSITIVE`/`TRAITS_NEGATIVE`).
+- Trait chips arrive from Claude as `{word, valence}` — free-form adjective, valence judged in context (positive/neutral/negative → green/gray/red). `content.js` keeps `LEGACY_TRAITS_*` sets only to color bare-string traits from analyses cached under the old fixed-vocabulary schema.
 
 ## Gotchas
 

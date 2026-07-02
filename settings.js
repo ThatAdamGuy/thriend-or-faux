@@ -58,6 +58,6 @@ document.getElementById("paste-btn").addEventListener("click", async () => {
     apiKeyInput.value = text.trim();
   } catch (e) {
     status.style.color = "#f08080";
-    status.textContent = "Clipboard access denied — try typing the key manually.";
+    status.textContent = "Clipboard access blocked in this browser — select the field and use Cmd/Ctrl+V, or type the key manually.";
   }
 });

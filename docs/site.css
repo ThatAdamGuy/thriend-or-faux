@@ -150,6 +150,12 @@ a:hover { color: #135c2b; }
 }
 
 /* --- Screenshots --- */
+.shots-hint {
+  font-size: 13px;
+  color: var(--faint);
+  text-align: center;
+  margin: -6px 0 16px;
+}
 .shots {
   display: flex;
   gap: 20px;
@@ -165,6 +171,7 @@ a:hover { color: #135c2b; }
 .shots img {
   width: 100%;
   height: auto;
+  display: block;
   border-radius: 12px;
   border: 1px solid var(--card-border);
   box-shadow: 0 4px 16px rgba(0,0,0,0.08);
@@ -177,6 +184,86 @@ a:hover { color: #135c2b; }
   margin-top: 8px;
   line-height: 1.45;
 }
+
+/* Screenshot → lightbox trigger */
+.tof-zoom-trigger {
+  all: unset;
+  position: relative;
+  display: block;
+  cursor: zoom-in;
+  border-radius: 12px;
+}
+.tof-zoom-trigger:focus-visible {
+  outline: 2px solid var(--thriend);
+  outline-offset: 3px;
+}
+.tof-zoom-hint {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(17,17,17,0.72);
+  color: #fff;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+.tof-zoom-trigger:hover .tof-zoom-hint,
+.tof-zoom-trigger:focus-visible .tof-zoom-hint {
+  opacity: 1;
+}
+
+/* Lightbox overlay */
+.tof-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(17,17,17,0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease;
+}
+.tof-lightbox-overlay.tof-open {
+  opacity: 1;
+  visibility: visible;
+}
+.tof-lightbox-overlay img {
+  max-width: min(92vw, 720px);
+  max-height: 88vh;
+  width: auto;
+  height: auto;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  background: #fff;
+}
+.tof-lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.35);
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tof-lightbox-close:hover { background: rgba(255,255,255,0.26); }
 
 /* --- Footer --- */
 footer {

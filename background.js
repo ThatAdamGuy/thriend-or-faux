@@ -152,12 +152,6 @@ async function withFetchSlot(fn) {
   }
 }
 
-// Curated trait vocabulary — content.js colors these by category, so keep the two in sync
-const TRAITS_POSITIVE = ["kind", "supportive", "funny", "witty", "insightful", "curious", "generous", "welcoming", "thoughtful", "playful", "knowledgeable", "creative", "earnest", "upbeat", "helpful"];
-const TRAITS_NEUTRAL  = ["geeky", "political", "promotional", "opinionated", "prolific", "reserved", "niche", "quirky", "intense", "artsy"];
-const TRAITS_NEGATIVE = ["angry", "combative", "snarky", "dismissive", "inflammatory", "spammy", "self-absorbed", "trollish", "bitter", "condescending", "crude"];
-const TRAIT_VOCAB = [...TRAITS_POSITIVE, ...TRAITS_NEUTRAL, ...TRAITS_NEGATIVE];
-
 const VERDICT_TOOL = {
   name: "report_verdict",
   description: "Report the structured assessment of this Threads profile.",
@@ -168,8 +162,19 @@ const VERDICT_TOOL = {
       summary: { type: "string", description: "One natural sentence describing what they recently wrote about." },
       tone:    { type: "string", description: "One word, e.g. earnest, snarky, angry, calm, funny, inflammatory." },
       traits:  {
-        type: "array", items: { type: "string", enum: TRAIT_VOCAB }, minItems: 2, maxItems: 5,
-        description: "2-5 adjectives that best capture this person's vibe. Include negative ones when warranted — don't sugarcoat."
+        type: "array", minItems: 2, maxItems: 5,
+        description: "2-5 adjectives that best capture this person's vibe. Include negative ones when warranted — don't sugarcoat. Don't repeat the verdict word as a trait.",
+        items: {
+          type: "object",
+          properties: {
+            word: { type: "string", description: "One lowercase adjective (or short hyphenated compound), e.g. 'kind', 'geeky', 'self-absorbed'." },
+            valence: {
+              type: "string", enum: ["positive", "neutral", "negative"],
+              description: "How this trait, as used by THIS person, would read to a stranger deciding whether to engage: positive = inviting, negative = warning sign, neutral = purely descriptive (topic/style, no judgment)."
+            }
+          },
+          required: ["word", "valence"]
+        }
       },
       topics:    { type: "array", items: { type: "string" }, maxItems: 3, description: "Up to 3 main topics as short phrases." },
       replyStyle: { type: "string", description: "How they conduct themselves in their replies to others, as a short adverbial phrase (1-3 words) that completes 'replies frequently and ___' — e.g. 'supportively', 'with dry humor', 'combatively', 'informatively'. Empty string if there are no replies to judge." },
@@ -455,6 +460,17 @@ async function fetchUserInfo(userId, stats) {
 }
 
 
+// Bios are free text and can contain anything, including emoji outside the Basic
+// Multilingual Plane (flags, globes, most modern emoji). String.fromCharCode truncates
+// those to 16 bits and produces a glyph-less character — hence String.fromCodePoint.
+const NAMED_ENTITIES = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
+function decodeHtmlEntities(str) {
+  return str
+    .replace(/&#x([\da-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g,        (_, dec) => String.fromCodePoint(parseInt(dec, 10)))
+    .replace(/&([a-z]+);/gi,     (m, name) => NAMED_ENTITIES[name.toLowerCase()] ?? m);
+}
+
 function parseProfileStats(html, username) {
   const stats = {
     username,
@@ -471,8 +487,7 @@ function parseProfileStats(html, username) {
   )?.[1];
 
   if (ogDesc) {
-    const decoded = ogDesc.replace(/&#x2022;/g, "•").replace(/&#x[\da-f]+;/gi, c =>
-      String.fromCharCode(parseInt(c.slice(3,-1), 16)));
+    const decoded = decodeHtmlEntities(ogDesc);
     const threadMatch = decoded.match(/([\d][.\d]*[KMBkmb]?)\s+Threads/i);
     if (threadMatch) stats.threadCount = threadMatch[1];
     // Bio is everything after the "Threads •" portion; strip Threads' boilerplate fallback

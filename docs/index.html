@@ -32,13 +32,20 @@
 
   <section>
     <h2>See it in action</h2>
+    <p class="shots-hint">Click either screenshot to enlarge.</p>
     <div class="shots">
       <figure>
-        <img src="img/hover-panel.png" alt="Hovering a username on Threads: the native hover card appears with the Thriend or Faux stats panel attached below it, showing follower counts, ratio, and an Analyze posts button.">
+        <button type="button" class="tof-zoom-trigger" aria-label="Enlarge screenshot: hover panel">
+          <img src="img/hover-panel.png" alt="Hovering a username on Threads: the native hover card appears with the Thriend or Faux stats panel attached below it, showing follower counts, ratio, and an Analyze posts button.">
+          <span class="tof-zoom-hint">🔍</span>
+        </button>
         <figcaption>Hover any username — quick stats appear right under the native card.</figcaption>
       </figure>
       <figure>
-        <img src="img/side-panel.png" alt="The Thriend or Faux side panel showing Threads stats for a profile plus a Claude AI assessment: a Genuine · Earnest verdict, trait chips, a summary of topics, and a list of positives.">
+        <button type="button" class="tof-zoom-trigger" aria-label="Enlarge screenshot: side panel analysis">
+          <img src="img/side-panel.png" alt="The Thriend or Faux side panel showing Threads stats for a profile plus a Claude AI assessment: a Genuine · Earnest verdict, trait chips, a summary of topics, and a list of positives.">
+          <span class="tof-zoom-hint">🔍</span>
+        </button>
         <figcaption>Click "Analyze posts" for Claude's frank read: verdict, traits, and how they treat people in the replies.</figcaption>
       </figure>
     </div>
@@ -88,5 +95,6 @@
   </footer>
 
 </div>
+<script src="site.js" defer></script>
 </body>
 </html>
