@@ -14,6 +14,7 @@ Chrome MV3 extension for **threads.com** by Adam (@thatadamguy on Threads). Hove
 - `content.js` — hover-card detection (MutationObserver on `hidden` attr; Threads portals the visible card into a different subtree, so panel show/hide uses **pixel-geometry safe zones, not DOM containment**). Renders hover panel + side panel. Debounces (800ms) before requesting posts.
 - `background.js` — service worker. Three messages: `FETCH_PROFILE` (raw HTML fetch + internal `api/v1/users/{id}/info` with `X-IG-App-ID: 238260118697367`), `FETCH_POSTS` (opens **two invisible background tabs** — profile + /replies — and scrapes `thread_items` JSON from the rendered DOM; raw HTML never contains posts, they're injected client-side via GraphQL/Relay, so tabs are unavoidable), `ANALYZE_PROFILE` (Claude `claude-haiku-4-5-20251001`, tool-forced JSON via `report_verdict` tool, user's own API key from `chrome.storage.local`, header `anthropic-dangerous-direct-browser-access: true`).
 - Persistent cache: `chrome.storage.local`, keys `tof_c_*`, 12h TTL, 150-entry cap. ↻ refresh link on the panel force-refetches.
+- **Remote status / kill switch** (v0.2.2+): background.js fetches `docs/status.json` from the GitHub Pages site (no extra permission — GH Pages sends open CORS) on SW wake, throttled 6h, cached under `tof_status`, **fail-open**. `killSwitch:true` → background refuses the three data messages, content.js shows a notice panel. `minVersion` → hard block + "Update now" button; `latestVersion` → soft nudge (hover panel + side-panel version line). Update button → `REQUEST_UPDATE` message → `chrome.runtime.requestUpdateCheck()`; `onUpdateAvailable` → `reload()`. Actuate by editing status.json and pushing.
 - `panel.css`, `settings.html/js` (API-key popup), `about.html` (panel footer text; version line auto-appended from manifest).
 - **Trait vocabulary lives in two places that must stay in sync**: enum in `background.js` (`TRAIT_VOCAB`), color sets in `content.js` (`TRAITS_POSITIVE`/`TRAITS_NEGATIVE`).
 
@@ -24,9 +25,10 @@ Chrome MV3 extension for **threads.com** by Adam (@thatadamguy on Threads). Hove
 - Atlas browser support was dropped deliberately (its `tabs.create` callback is broken; Atlas is deprecated).
 - Reload extension via chrome://extensions ↻ after edits; check `[ToF] loaded` in the page console.
 
-## Status & plans (as of July 2026, v0.2.0)
+## Status & plans (as of July 1 2026, v0.2.2)
 
-- Feature-complete for invite-only release.
-- **Next: one-pager site + privacy policy** in `docs/` (GitHub Pages serves from /docs). Draft content from Adam: `docs/site-content-draft.md`. Privacy policy page is **required** for Chrome Web Store (data goes to Anthropic).
-- Then: Chrome Web Store submission — **Private** visibility + trusted-tester emails (not Unlisted). Non-trader under EU DSA. Justify tabs/scripting permissions in the listing.
+- Site LIVE at https://thatadamguy.github.io/thriend-or-faux/ (GitHub Pages from /docs of public repo ThatAdamGuy/thriend-or-faux). Compass logo (v0.2.1) replaced the placeholder blue square.
+- **v0.2.1 submitted to Chrome Web Store** (Private visibility, tester group tof-testers@googlegroups.com, non-trader) — awaiting review.
+- v0.2.2 (remote status/kill switch) built locally; **do not upload while 0.2.1 review is pending** — zip is `tof-0.2.2.zip`.
+- Domain thriendorfaux.com purchased, not yet wired to Pages.
 - Deferred ideas: "Analyze me" self-card, positive-only shareable card images, multi-LLM support (rejected for now — Claude only).

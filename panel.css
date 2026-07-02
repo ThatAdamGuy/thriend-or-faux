@@ -345,6 +345,28 @@
   margin-top: 16px;
 }
 
+/* Remote-status notices (kill switch / forced update) shown in place of stats */
+.tof-notice {
+  font-size: 12px;
+  color: #444;
+  line-height: 1.5;
+  padding: 2px 0 4px;
+}
+
+/* Soft "new version available" nudge under the stats rows */
+.tof-update-line {
+  font-size: 11px;
+  color: #b89a00;
+  text-align: center;
+  margin-top: 8px;
+}
+.tof-update-line a, a.tof-update-link {
+  color: #1a7a3a;
+  font-weight: 600;
+  text-decoration: none;
+}
+.tof-update-line a:hover, a.tof-update-link:hover { text-decoration: underline; }
+
 /* Analyze button sits at the bottom of the hover card */
 .tof-analyze-btn {
   display: block;

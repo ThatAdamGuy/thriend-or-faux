@@ -47,6 +47,83 @@ function getOrCreatePanel() {
 }
 
 function showPanel(card) {
+  getRemoteStatus((status) => {
+    const ver = chrome.runtime.getManifest().version;
+    if (status?.killSwitch) {
+      renderNoticePanel(card, status.killMessage || "Thriend or Faux has been shut down by its author. Thanks for testing!");
+      return;
+    }
+    if (status?.minVersion && versionCompare(ver, status.minVersion) < 0) {
+      renderNoticePanel(card, "This version of Thriend or Faux is out of date and no longer works." +
+        (status.updateNote ? " " + status.updateNote : ""), true);
+      return;
+    }
+    const updateAvailable = !!(status?.latestVersion && versionCompare(ver, status.latestVersion) < 0);
+    renderHoverPanel(card, updateAvailable);
+  });
+}
+
+// Remote status is fetched/refreshed by background.js; content scripts just read the copy
+function getRemoteStatus(cb) {
+  try {
+    chrome.storage.local.get("tof_status", (r) => cb(r?.tof_status ?? null));
+  } catch (e) { cb(null); }
+}
+
+function versionCompare(a, b) {
+  const pa = String(a).split(".").map(Number), pb = String(b).split(".").map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] || 0) - (pb[i] || 0);
+    if (d) return d;
+  }
+  return 0;
+}
+
+// Replaces the stats card with a notice (kill switch / forced update)
+function renderNoticePanel(card, message, offerUpdate = false) {
+  const panel = getOrCreatePanel();
+  const rect = card.getBoundingClientRect();
+  panel.style.top   = (rect.bottom + window.scrollY + 6) + "px";
+  panel.style.left  = rect.left + "px";
+  panel.style.width = rect.width + "px";
+  panel.innerHTML = `
+    <button class="tof-panel-close-x" title="Close">×</button>
+    <div class="tof-card-header">Thriend Or Faux 👁</div>
+    <div class="tof-notice"></div>
+    ${offerUpdate ? `<button class="tof-analyze-btn tof-update-btn">Update now</button>` : ""}
+  `;
+  panel.querySelector(".tof-notice").textContent = message;
+  panel.classList.add("tof-visible");
+
+  const panelRect = panel.getBoundingClientRect();
+  const pad = 14;
+  safeZoneRect = {
+    left:   Math.min(rect.left, panelRect.left) - pad,
+    right:  Math.max(rect.right, panelRect.right) + pad,
+    top:    rect.top - pad,
+    bottom: panelRect.bottom + pad,
+  };
+
+  const btn = panel.querySelector(".tof-update-btn");
+  if (btn) btn.addEventListener("click", () => requestExtensionUpdate(btn));
+}
+
+// One-click update: background calls requestUpdateCheck, and its onUpdateAvailable
+// listener reloads the extension the moment Chrome finishes downloading the update.
+function requestExtensionUpdate(el) {
+  if (el.tagName === "BUTTON") el.disabled = true;
+  el.textContent = "Checking…";
+  try {
+    chrome.runtime.sendMessage({ type: "REQUEST_UPDATE" }, (resp) => {
+      if (chrome.runtime.lastError || !resp) { el.textContent = "Couldn't check — see chrome://extensions"; return; }
+      if (resp.status === "update_available")   el.textContent = "Updating — one moment…";
+      else if (resp.status === "throttled")     el.textContent = "Checked too recently — try again in a bit";
+      else                                      el.textContent = "Not published yet — it'll auto-install soon";
+    });
+  } catch (e) { el.textContent = "Couldn't check — see chrome://extensions"; }
+}
+
+function renderHoverPanel(card, updateAvailable) {
   const panel = getOrCreatePanel();
   const username      = extractUsernameFromCard(card);
   const followersText = extractFollowersFromCard(card);
@@ -69,8 +146,15 @@ function showPanel(card) {
       <div class="tof-card-row"><span class="tof-card-label">Follower / following ratio</span><span class="tof-card-value tof-fetching">…</span></div>
       <div class="tof-card-row"><span class="tof-card-label">Threads posted</span><span class="tof-card-value tof-fetching">…</span></div>
     </div>
+    ${updateAvailable ? `<div class="tof-update-line">New version available · <a href="#" class="tof-update-link">Update now</a></div>` : ""}
   `;
   panel.classList.add("tof-visible");
+
+  const updateLink = panel.querySelector(".tof-update-link");
+  if (updateLink) updateLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    requestExtensionUpdate(e.target);
+  });
 
   // Geometry-based "safe zone" instead of DOM containment — Threads renders the
   // actual hover-card content in a different subtree than the element whose
@@ -161,8 +245,21 @@ function getOrCreateSidePanel() {
       .then(r => r.text())
       .then(html => {
         const el = document.getElementById("tof-about");
-        if (el) el.innerHTML = html +
+        if (!el) return;
+        el.innerHTML = html +
           `<p class="tof-version">Test build · v${chrome.runtime.getManifest().version}</p>`;
+        getRemoteStatus((status) => {
+          const ver = chrome.runtime.getManifest().version;
+          if (!(status?.latestVersion && versionCompare(ver, status.latestVersion) < 0)) return;
+          const vline = el.querySelector(".tof-version");
+          if (!vline) return;
+          const a = document.createElement("a");
+          a.href = "#";
+          a.className = "tof-update-link";
+          a.textContent = "update available";
+          a.addEventListener("click", (ev) => { ev.preventDefault(); requestExtensionUpdate(a); });
+          vline.append(" · ", a);
+        });
       })
       .catch(() => {});
   }

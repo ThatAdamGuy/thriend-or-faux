@@ -1,12 +1,85 @@
 // background.js
 
+// --- Remote status: kill switch + update nudges, via status.json on the ToF site ---
+// Installed copies can't be remotely uninstalled, so this is the emergency brake:
+// flip killSwitch in docs/status.json and every install goes quiet within the TTL.
+// Fail-open: a failed fetch never disables anything — only an explicit true does.
+
+const STATUS_URL    = "https://thatadamguy.github.io/thriend-or-faux/status.json";
+const STATUS_TTL_MS = 6 * 60 * 60 * 1000;
+
+async function refreshRemoteStatus() {
+  let cached = null;
+  try {
+    cached = (await chrome.storage.local.get("tof_status")).tof_status ?? null;
+    if (cached && Date.now() - cached.fetchedAt < STATUS_TTL_MS) return cached;
+    const res = await fetch(STATUS_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const remote = await res.json();
+    const status = {
+      fetchedAt:     Date.now(),
+      killSwitch:    remote.killSwitch === true,
+      killMessage:   typeof remote.killMessage   === "string" ? remote.killMessage   : "",
+      latestVersion: typeof remote.latestVersion === "string" ? remote.latestVersion : null,
+      minVersion:    typeof remote.minVersion    === "string" ? remote.minVersion    : null,
+      updateNote:    typeof remote.updateNote    === "string" ? remote.updateNote    : "",
+    };
+    await chrome.storage.local.set({ tof_status: status });
+    return status;
+  } catch (e) {
+    return cached;
+  }
+}
+refreshRemoteStatus(); // runs on every service-worker wake, throttled by the TTL
+
+function versionCompare(a, b) {
+  const pa = String(a).split(".").map(Number), pb = String(b).split(".").map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] || 0) - (pb[i] || 0);
+    if (d) return d;
+  }
+  return 0;
+}
+
+// requestUpdateCheck (below) makes Chrome download a pending update; apply it as soon as it lands
+chrome.runtime.onUpdateAvailable.addListener(() => chrome.runtime.reload());
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === "REQUEST_UPDATE") {
+    try {
+      chrome.runtime.requestUpdateCheck((status) => {
+        void chrome.runtime.lastError; // e.g. unpacked install — report as no_update
+        sendResponse({ status: status || "no_update" });
+      });
+    } catch (e) {
+      sendResponse({ status: "no_update" });
+    }
+    return true;
+  }
+
+  if (!["FETCH_PROFILE", "FETCH_POSTS", "ANALYZE_PROFILE"].includes(request.type)) return;
+
+  refreshRemoteStatus().then((status) => {
+    if (status?.killSwitch) {
+      sendResponse({ success: false, error: status.killMessage || "Thriend or Faux has been disabled by its author." });
+      return;
+    }
+    const ver = chrome.runtime.getManifest().version;
+    if (status?.minVersion && versionCompare(ver, status.minVersion) < 0) {
+      sendResponse({ success: false, error: "This version of Thriend or Faux is out of date — please update the extension." });
+      return;
+    }
+    handleDataRequest(request, sendResponse);
+  });
+  return true;
+});
+
+function handleDataRequest(request, sendResponse) {
   if (request.type === "FETCH_PROFILE") {
     cachedFetch(`tof_c_profile_${request.username}`, request.force,
       () => fetchProfileData(request.username))
       .then(({ data, fetchedAt }) => sendResponse({ success: true, data: { ...data, fetchedAt } }))
       .catch(err => sendResponse({ success: false, error: err.message }));
-    return true;
   }
   if (request.type === "FETCH_POSTS") {
     cachedFetch(`tof_c_posts_${request.username}`, request.force,
@@ -14,7 +87,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       (result) => result.postsLoaded || result.repliesLoaded) // don't cache total failures
       .then(({ data }) => sendResponse({ success: true, ...data }))
       .catch(err => sendResponse({ success: false, error: err.message }));
-    return true;
   }
   if (request.type === "ANALYZE_PROFILE") {
     cachedFetch(`tof_c_analysis_${request.profileData.username}`, request.force,
@@ -23,9 +95,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       () => request.profileData.postsLoaded || request.profileData.repliesLoaded)
       .then(({ data }) => sendResponse({ success: true, result: data }))
       .catch(err => sendResponse({ success: false, error: err.message }));
-    return true;
   }
-});
+}
 
 // --- Persistent cache (chrome.storage.local) ---
 // Re-hovering someone within the TTL costs zero tabs and zero API tokens.
