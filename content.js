@@ -343,13 +343,22 @@ function renderAnalysis(r, container, replyFreq) {
   const positives = (r.positives ?? []).map(p => `<li>✓ ${p}</li>`).join("");
   const topics    = (r.topics    ?? []).join(" · ");
 
-  // "Replies: Frequently and supportively" — frequency from data, style from Claude
-  const style = (r.replyStyle ?? "").trim();
+  // "Replies: Frequently, warmly, and supportively" — frequency from data, style from
+  // Claude. Claude may return its own conjunction ("warmly and supportively"), so split
+  // it into parts and rejoin everything as one list to avoid "and X and Y" stacking.
+  const style = (r.replyStyle ?? "").trim().replace(/^and\s+/i, "");
   let repliesLine = "";
-  if (replyFreq === "Never")     repliesLine = "Never";
-  else if (replyFreq && style)   repliesLine = `${replyFreq} and ${style}`;
-  else if (replyFreq)            repliesLine = replyFreq;
-  else if (style)                repliesLine = style;
+  if (replyFreq === "Never") {
+    repliesLine = "Never";
+  } else {
+    const parts = [
+      replyFreq,
+      ...(style ? style.split(/,\s*(?:and\s+)?|\s+and\s+/i) : []),
+    ].filter(Boolean);
+    if (parts.length === 1)      repliesLine = parts[0];
+    else if (parts.length === 2) repliesLine = `${parts[0]} and ${parts[1]}`;
+    else if (parts.length > 2)   repliesLine = `${parts.slice(0, -1).join(", ")}, and ${parts[parts.length - 1]}`;
+  }
 
   container.innerHTML = `
     <div class="tof-verdict">${emoji} <strong>${r.verdict}</strong> · <em>${r.tone ?? ""}</em></div>
