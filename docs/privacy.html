@@ -18,7 +18,7 @@
 
   <section>
     <h2>The short version</h2>
-    <p>Thriend or Faux runs entirely in your browser. It has no servers, no accounts, no analytics, and no tracking. The extension's author receives <strong>no data whatsoever</strong>. The only party that receives any data is <strong>Anthropic</strong> — when you click "Analyze posts," a profile's public content is sent to the Claude API using <em>your own</em> API key.</p>
+    <p>Thriend or Faux runs entirely in your browser. It has no servers, no accounts, no analytics, and no tracking. The extension's author receives <strong>no data whatsoever</strong>. The only party that receives any data is <strong>Anthropic</strong> — when you click "Analyze posts," a profile's content (the same content visible in your own logged-in view of Threads) is sent to the Claude API using <em>your own</em> API key.</p>
   </section>
 
   <section>
@@ -33,9 +33,9 @@
   <section>
     <h2>Where data goes</h2>
     <h3>Meta / Threads</h3>
-    <p>The extension sends nothing of its own to Meta. When you hover a username, it quietly opens that person's public profile and replies pages in background tabs to read their public posts — so Meta's logs see ordinary page visits from your browser, the same as if you had clicked through to the profile yourself.</p>
+    <p>The extension sends nothing of its own to Meta. When you hover a username, it quietly opens that person's profile and replies pages in background tabs, using your own logged-in Threads session — so Meta's logs see ordinary page visits from your browser, the same as if you had clicked through to the profile yourself. That also means the extension sees exactly what <em>you</em> can see: for most accounts that's public content, but if you follow someone whose account is private, the extension sees that account the same way you already do as an approved follower — nothing beyond your own access.</p>
     <h3>Anthropic</h3>
-    <p>When a profile is analyzed, the extension sends that profile's <em>public</em> information — username, bio, follower/following counts, and the text of recent public posts and replies — to Anthropic's Claude API, authenticated with your API key. This happens only for profiles you look up, and results are cached locally so the same profile isn't re-sent within 12 hours.</p>
+    <p>When a profile is analyzed, the extension sends that profile's information — username, bio, follower/following counts, and the text of recent posts and replies, limited to whatever your own logged-in view of Threads can see — to Anthropic's Claude API, authenticated with your API key. This happens only for profiles you look up, and results are cached locally so the same profile isn't re-sent within 12 hours.</p>
     <p>Your API usage is governed by Anthropic's own <a href="https://www.anthropic.com/legal/privacy">privacy policy</a> and commercial terms. Anthropic states that API inputs and outputs are not used to train its models by default.</p>
     <h3>This website (GitHub Pages)</h3>
     <p>A few times a day, the extension fetches a small status file from this website so the author can announce updates or remotely disable the extension in an emergency. The request carries no personal data and nothing about your activity — the site's host (GitHub) sees only the standard connection logs any web request produces, and the author sees nothing at all.</p>
@@ -46,15 +46,15 @@
 
   <section>
     <h2>About the people you look up</h2>
-    <p>The extension only ever reads what is already public on Threads — public bios, public posts, public replies. It cannot see private accounts, DMs, or anything you couldn't see yourself by visiting the profile. Analyses are private decision-support shown only to you: by design, there is no feature for publicly sharing a negative assessment of another person.</p>
+    <p>The extension reads a profile exactly the way <em>you</em> already can — nothing more. For public accounts, that's public bios, posts, and replies. If you follow someone whose account is private and they've approved you, the extension can see their profile the same way you already do as a follower, and that content is handled the same as any other profile you analyze. It cannot see DMs, or anything outside your own account's access — visiting the profile yourself would show you the same thing. Analyses are private decision-support shown only to you: by design, there is no feature for publicly sharing a negative assessment of another person.</p>
   </section>
 
   <section>
     <h2>Chrome permissions, explained</h2>
     <ul>
       <li><strong>storage</strong> — to save your API key and the local results cache.</li>
-      <li><strong>tabs &amp; scripting</strong> — to open a profile's public page in a background tab and read the posts from it. Threads only delivers post content to a rendered page, so this is the only way to read it. These permissions are used solely on threads.com pages the extension itself opens.</li>
-      <li><strong>Host access to threads.com</strong> — to show the stats card on the site and fetch public profile pages.</li>
+      <li><strong>tabs &amp; scripting</strong> — to open a profile's page in a background tab (as visible in your own logged-in session) and read the posts from it. Threads only delivers post content to a rendered page, so this is the only way to read it. These permissions are used solely on threads.com pages the extension itself opens.</li>
+      <li><strong>Host access to threads.com</strong> — to show the stats card on the site and fetch profile pages.</li>
       <li><strong>Host access to api.anthropic.com</strong> — to send analysis requests with your key.</li>
     </ul>
   </section>
