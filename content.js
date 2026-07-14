@@ -87,13 +87,58 @@ function versionCompare(a, b) {
   return 0;
 }
 
+// Positions the mini panel near `rect` — flips above the trigger card (or clamps
+// into the viewport) when there isn't room below, so a card triggered near the
+// bottom of the screen never renders its buttons off-screen with no way to reach
+// them (scrolling can't help: it hides the panel, see the mousemove listener).
+// Must be called AFTER the panel's content + tof-visible class are set, since it
+// measures the panel's actual rendered height.
+function positionPanel(panel, rect) {
+  panel.style.left  = rect.left + "px";
+  panel.style.width = rect.width + "px";
+
+  const margin      = 6;
+  const panelHeight = panel.offsetHeight;
+  const spaceBelow  = window.innerHeight - rect.bottom;
+  const spaceAbove  = rect.top;
+
+  let top;
+  if (panelHeight + margin <= spaceBelow) {
+    top = rect.bottom + window.scrollY + margin;             // fits below — usual case
+  } else if (panelHeight + margin <= spaceAbove) {
+    top = rect.top + window.scrollY - panelHeight - margin;  // flip above the card
+  } else {
+    // Neither side fully fits (very tall panel or short window) — use whichever
+    // side has more room, then clamp fully inside the viewport as a last resort.
+    top = spaceBelow >= spaceAbove
+      ? rect.bottom + window.scrollY + margin
+      : rect.top + window.scrollY - panelHeight - margin;
+  }
+  const minTop = window.scrollY + margin;
+  const maxTop = window.scrollY + window.innerHeight - panelHeight - margin;
+  if (maxTop > minTop) top = Math.min(Math.max(top, minTop), maxTop);
+
+  panel.style.top = top + "px";
+}
+
+// Safe zone must cover whichever of {card, panel} is higher/lower — the panel
+// can now render either above or below the card, unlike when this was written
+// assuming "below" was the only option.
+function computeSafeZone(rect, panel) {
+  const panelRect = panel.getBoundingClientRect();
+  const pad = 14;
+  return {
+    left:   Math.min(rect.left, panelRect.left) - pad,
+    right:  Math.max(rect.right, panelRect.right) + pad,
+    top:    Math.min(rect.top, panelRect.top) - pad,
+    bottom: Math.max(rect.bottom, panelRect.bottom) + pad,
+  };
+}
+
 // Replaces the stats card with a notice (kill switch / forced update)
 function renderNoticePanel(card, message, offerUpdate = false) {
   const panel = getOrCreatePanel();
   const rect = card.getBoundingClientRect();
-  panel.style.top   = (rect.bottom + window.scrollY + 6) + "px";
-  panel.style.left  = rect.left + "px";
-  panel.style.width = rect.width + "px";
   panel.innerHTML = `
     <button class="tof-panel-close-x" title="Close">×</button>
     <div class="tof-card-header">Thriend Or Faux 👁</div>
@@ -102,15 +147,9 @@ function renderNoticePanel(card, message, offerUpdate = false) {
   `;
   panel.querySelector(".tof-notice").textContent = message;
   panel.classList.add("tof-visible");
+  positionPanel(panel, rect);
 
-  const panelRect = panel.getBoundingClientRect();
-  const pad = 14;
-  safeZoneRect = {
-    left:   Math.min(rect.left, panelRect.left) - pad,
-    right:  Math.max(rect.right, panelRect.right) + pad,
-    top:    rect.top - pad,
-    bottom: panelRect.bottom + pad,
-  };
+  safeZoneRect = computeSafeZone(rect, panel);
 
   const btn = panel.querySelector(".tof-update-btn");
   if (btn) btn.addEventListener("click", () => requestExtensionUpdate(btn));
@@ -137,9 +176,6 @@ function renderHoverPanel(card, updateAvailable) {
   const followersText = extractFollowersFromCard(card);
 
   const rect = card.getBoundingClientRect();
-  panel.style.top   = (rect.bottom + window.scrollY + 6) + "px";
-  panel.style.left  = rect.left + "px";
-  panel.style.width = rect.width + "px";
 
   const fetchedId = `tof-f-${Date.now()}`;
   panel.innerHTML = `
@@ -157,6 +193,7 @@ function renderHoverPanel(card, updateAvailable) {
     ${updateAvailable ? `<div class="tof-update-line">New version available · <a href="#" class="tof-update-link">Update now</a></div>` : ""}
   `;
   panel.classList.add("tof-visible");
+  positionPanel(panel, rect);
 
   const updateLink = panel.querySelector(".tof-update-link");
   if (updateLink) updateLink.addEventListener("click", (e) => {
@@ -168,14 +205,7 @@ function renderHoverPanel(card, updateAvailable) {
   // actual hover-card content in a different subtree than the element whose
   // `hidden` attribute we observe (looks like a portal), so contains() checks
   // against it are unreliable. Pixel bounds don't care about that structure.
-  const panelRect = panel.getBoundingClientRect();
-  const pad = 14;
-  safeZoneRect = {
-    left:   Math.min(rect.left, panelRect.left) - pad,
-    right:  Math.max(rect.right, panelRect.right) + pad,
-    top:    rect.top - pad,
-    bottom: panelRect.bottom + pad,
-  };
+  safeZoneRect = computeSafeZone(rect, panel);
 
   if (!username) return;
 
@@ -217,6 +247,13 @@ function renderHoverPanel(card, updateAvailable) {
         btn.textContent = "Opening…";
         openSidePanel(username, d, ensurePostsFetch(username));
       });
+
+      // The panel just grew (rows filled in + button added) — reposition in case
+      // that pushed it past the viewport edge, and refresh the safe zone to match.
+      if (panel.classList.contains("tof-visible")) {
+        positionPanel(panel, rect);
+        safeZoneRect = computeSafeZone(rect, panel);
+      }
     });
   } catch (e) {}
 }
