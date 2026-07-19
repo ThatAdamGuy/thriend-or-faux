@@ -15,6 +15,10 @@
   box-shadow: 0 4px 16px rgba(0,0,0,0.10);
   display: none;
   box-sizing: border-box;
+  /* Safety net: if a future bug ever anchors this to the wrong (huge) element,
+     it renders as an oversized card near the trigger point, never a full-width
+     banner spanning the page. */
+  max-width: 420px;
 }
 
 #tof-panel.tof-visible {

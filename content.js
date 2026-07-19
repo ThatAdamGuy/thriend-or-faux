@@ -574,11 +574,19 @@ function tryShowForCard(el, gen, attemptsLeft) {
     if (el.hasAttribute("hidden") || !document.contains(el)) return; // card closed/removed already
     const hasProfileLink = !!el.querySelector('a[href*="/@"]');
     if (hasProfileLink) {
-      activeCard = el;
-      showPanel(el);
-    } else if (attemptsLeft > 1) {
-      tryShowForCard(el, gen, attemptsLeft - 1);
+      // The `hidden` attribute we're observing can land on a large wrapper (portal
+      // root, backdrop) that merely *contains* a profile link somewhere deep inside,
+      // rather than the small hover card itself. Anchoring the panel to that yields
+      // a huge/misplaced rect. A real hover card is always compact — reject anything
+      // that isn't, rather than rendering a panel sized to the wrong element.
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && r.width <= 480 && r.height <= 400) {
+        activeCard = el;
+        showPanel(el);
+      }
+      return; // element is stable now — retrying won't change a wrong match's size
     }
+    if (attemptsLeft > 1) tryShowForCard(el, gen, attemptsLeft - 1);
   }, 150);
 }
 
