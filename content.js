@@ -10,15 +10,34 @@ function ensurePostsFetch(username, force = false) {
   if (entry && !force) return entry;
   entry = { result: undefined, callbacks: [] };
   postsCache.set(username, entry);
+
+  // Drain callbacks exactly once, isolating each so one thrower can't strand the rest.
+  const settle = (resp) => {
+    if (entry.result !== undefined) return;
+    clearTimeout(entry.timer);
+    entry.result = resp;
+    const cbs = entry.callbacks;
+    entry.callbacks = [];
+    cbs.forEach(cb => { try { cb(resp); } catch (e) {} });
+  };
+
+  // If the service worker is evicted mid-request the callback below never fires at
+  // all; without this the entry stays pending forever and every later hover reuses
+  // that dead entry, pinning the panel on "Loading posts…".
+  entry.timer = setTimeout(() => {
+    postsCache.delete(username); // let a later attempt start clean
+    settle({ success: false });
+  }, 40000);
+
   try {
     chrome.runtime.sendMessage({ type: "FETCH_POSTS", username, force }, (resp) => {
       if (chrome.runtime.lastError) resp = { success: false };
-      entry.result = resp;
-      entry.callbacks.forEach(cb => cb(resp));
-      entry.callbacks = [];
+      if (!resp?.success) postsCache.delete(username); // don't cache failures for the session
+      settle(resp);
     });
   } catch (e) {
-    entry.result = { success: false };
+    postsCache.delete(username);
+    settle({ success: false });
   }
   return entry;
 }
@@ -230,7 +249,7 @@ function renderHoverPanel(card, updateAvailable) {
 
       function fill(row, value) {
         const val = row.querySelector(".tof-card-value");
-        if (val) { val.textContent = value || "unavailable"; val.classList.remove("tof-fetching"); }
+        if (val) { val.textContent = (value ?? null) === null || value === "" ? "unavailable" : value; val.classList.remove("tof-fetching"); }
       }
       fill(rows[0], d.following != null ? d.following.toLocaleString() : null);
       fill(rows[1], d.ratio ? `${d.ratio}x` : null);
@@ -242,7 +261,8 @@ function renderHoverPanel(card, updateAvailable) {
       btn.textContent = "Analyze posts →";
       container.appendChild(btn);
 
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (ev) => {
+        if (!ev.isTrusted) return; // page script can find these IDs; only real clicks spend credit
         btn.disabled    = true;
         btn.textContent = "Opening…";
         openSidePanel(username, d, ensurePostsFetch(username));
@@ -292,7 +312,7 @@ function getOrCreateSidePanel() {
         const el = document.getElementById("tof-about");
         if (!el) return;
         el.innerHTML = html +
-          `<p class="tof-version">Test build · v${chrome.runtime.getManifest().version}</p>`;
+          `<p class="tof-version">Public beta · v${chrome.runtime.getManifest().version}</p>`;
         getRemoteStatus((status) => {
           const ver = chrome.runtime.getManifest().version;
           if (!(status?.latestVersion && versionCompare(ver, status.latestVersion) < 0)) return;
@@ -311,9 +331,16 @@ function getOrCreateSidePanel() {
   return panel;
 }
 
+let panelGen = 0; // invalidates in-flight analyses when the panel moves to another profile
+
 function openSidePanel(username, profileData, postsEntry, forceAnalysis = false) {
   const sidePanel = getOrCreateSidePanel();
   const content   = document.getElementById("tof-panel-content");
+  // Analyses are slow and the panel is a single shared element. Without this, opening
+  // Bob while Alice's analysis is still running renders ALICE's verdict under BOB's
+  // name — the worst possible failure for a tool that judges people.
+  const myGen = ++panelGen;
+  const isCurrent = () => myGen === panelGen;
 
   // Snapshot reflects when the data was actually fetched (may be a cached read)
   const fetchedAt = profileData.fetchedAt ?? Date.now();
@@ -326,8 +353,11 @@ function openSidePanel(username, profileData, postsEntry, forceAnalysis = false)
 
   // Followers vs following as one proportional split bar — the center tick is the
   // 1:1 balance point, so the fill instantly reads as "audience vs. audience-seeker".
-  const f = profileData.followers ?? null;
-  const g = profileData.following ?? null;
+  // Normalize counts to real numbers before they reach any HTML template — never
+  // let an unexpected string from upstream flow through as markup.
+  const num = (v) => (Number.isFinite(Number(v)) && v !== null && v !== "") ? Number(v) : null;
+  const f = num(profileData.followers);
+  const g = num(profileData.following);
   let ffVizHtml = "";
   const rows = [];
   if (f != null && g != null && f + g > 0) {
@@ -347,16 +377,16 @@ function openSidePanel(username, profileData, postsEntry, forceAnalysis = false)
           <span><strong>${g.toLocaleString()}</strong> following</span>
         </div>
         <div class="tof-ff-bar"><div class="tof-ff-followers" style="width:${pct}%"></div><div class="tof-ff-following"></div></div>
-        <div class="tof-ff-ratio">${profileData.ratio ? profileData.ratio + "x · " : ""}${balance}</div>
+        <div class="tof-ff-ratio">${profileData.ratio ? esc(profileData.ratio) + "x · " : ""}${balance}</div>
       </div>`;
   } else {
     rows.push(
       ["Followers", f?.toLocaleString() ?? "—"],
       ["Following", g?.toLocaleString() ?? "—"],
-      ["Ratio",     profileData.ratio ? profileData.ratio + "x" : "—"],
+      ["Ratio",     profileData.ratio ? esc(profileData.ratio) + "x" : "—"],
     );
   }
-  rows.push(["Threads posted", profileData.threadCount ?? "—"]);
+  rows.push(["Threads posted", profileData.threadCount != null ? esc(profileData.threadCount) : "—"]);
   const statsRows = rows.map(([l, v]) => `<tr><td>${l}</td><td>${v}</td></tr>`).join("");
 
   const bioHtml = profileData.bio
@@ -396,10 +426,12 @@ function openSidePanel(username, profileData, postsEntry, forceAnalysis = false)
 
   document.getElementById("tof-refresh")?.addEventListener("click", (e) => {
     e.preventDefault();
+    if (!e.isTrusted) return; // refresh forces a re-fetch AND a paid re-analysis
     refreshProfile(username);
   });
 
   function showAnalysisError(msg, retry) {
+    if (!isCurrent()) return;
     const area = document.getElementById("tof-analysis-area");
     if (!area) return;
     area.innerHTML = "";
@@ -410,11 +442,12 @@ function openSidePanel(username, profileData, postsEntry, forceAnalysis = false)
     const btn = document.createElement("button");
     btn.className   = "tof-analyze-btn";
     btn.textContent = "Try again";
-    btn.addEventListener("click", retry);
+    btn.addEventListener("click", (ev) => { if (ev.isTrusted) retry(); });
     area.appendChild(btn);
   }
 
   function doAnalysis(resp) {
+    if (!isCurrent()) return;
     const area = document.getElementById("tof-analysis-area");
     if (!area) return;
     // Proceed even with empty posts — Claude can still assess from bio + stats
@@ -449,17 +482,59 @@ function openSidePanel(username, profileData, postsEntry, forceAnalysis = false)
         profileData: { username, ...profileData, posts, replies, postsLoaded, repliesLoaded, notFound, externalUrl: profileData.externalUrl ?? null },
       }, (r) => {
         clearTimeout(stallTimer);
+        if (!isCurrent()) return; // panel moved on to someone else — drop this result
         if (chrome.runtime.lastError || !r?.success) {
           showAnalysisError(r?.error ?? "Analysis failed — the background worker may have restarted.", retry);
           return;
         }
         const area2 = document.getElementById("tof-analysis-area");
-        if (area2) renderAnalysis(r.result, area2, replyFreq);
+        if (area2) {
+          try { renderAnalysis(r.result, area2, replyFreq); }
+          catch (err) { showAnalysisError("Couldn't display this analysis — the response was malformed.", retry); }
+        }
       });
     } catch (e) {
       clearTimeout(stallTimer);
       showAnalysisError(e.message, retry);
     }
+  }
+
+  // Private accounts: analyzing one sends a person's NON-public posts to Anthropic.
+  // The viewer consented to that; the account owner didn't — so make it an explicit,
+  // informed choice rather than something that just happens on click.
+  if (profileData.isPrivate) {
+    const area = document.getElementById("tof-analysis-area");
+    if (area) {
+      area.innerHTML = "";
+      const warn = document.createElement("div");
+      warn.className = "tof-private-warn";
+      const p1 = document.createElement("p");
+      p1.innerHTML = `<strong>This account is private.</strong>`;
+      const p2 = document.createElement("p");
+      p2.textContent = "Analyzing sends a sample of their posts to Anthropic to generate the assessment. " +
+        "Because this account is private, those posts aren't public — and its owner hasn't agreed to that. Your call.";
+      const row = document.createElement("div");
+      row.className = "tof-private-actions";
+      const cancel = document.createElement("button");
+      cancel.className = "tof-analyze-btn tof-btn-secondary";
+      cancel.textContent = "Cancel";
+      const go = document.createElement("button");
+      go.className = "tof-analyze-btn";
+      go.textContent = "Analyze anyway";
+      row.append(cancel, go);
+      warn.append(p1, p2, row);
+      area.appendChild(warn);
+
+      cancel.addEventListener("click", () => {
+        area.innerHTML = "";
+        const p = document.createElement("p");
+        p.className = "tof-small";
+        p.textContent = "Analysis cancelled — nothing was sent.";
+        area.appendChild(p);
+      });
+      go.addEventListener("click", (ev) => { if (ev.isTrusted) onPostsReady(postsEntry, doAnalysis); });
+    }
+    return;
   }
 
   onPostsReady(postsEntry, doAnalysis);
@@ -468,14 +543,14 @@ function openSidePanel(username, profileData, postsEntry, forceAnalysis = false)
 // Refresh link: clear every cache layer for this user and redo the whole pipeline
 function refreshProfile(username) {
   const content = document.getElementById("tof-panel-content");
-  if (content) content.innerHTML = `<p class="tof-loading">Refreshing @${username}…</p>`;
+  if (content) content.innerHTML = `<p class="tof-loading">Refreshing @${esc(username)}…</p>`;
   try {
     chrome.runtime.sendMessage({ type: "FETCH_PROFILE", username, force: true }, (resp) => {
       const d = (!chrome.runtime.lastError && resp?.success) ? resp.data : {};
       openSidePanel(username, d, ensurePostsFetch(username, true), true);
     });
   } catch (e) {
-    if (content) content.innerHTML = `<p class="tof-error">${e.message}</p>`;
+    if (content) content.innerHTML = `<p class="tof-error">${esc(e.message)}</p>`;
   }
 }
 

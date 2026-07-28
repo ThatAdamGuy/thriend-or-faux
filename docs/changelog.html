@@ -17,6 +17,19 @@
   </header>
 
   <section>
+    <h2>v0.9.0 · July 28, 2026 — public beta 🎉</h2>
+    <ul>
+      <li>🌍 <strong>Open to everyone.</strong> The Chrome Web Store listing is public — no more invite list.</li>
+      <li>🔒 Private accounts now ask first. If you analyze someone whose account is private, the extension explains that their non-public posts would be sent to Anthropic and waits for you to confirm.</li>
+      <li>⚖️ No more overclaiming. Analyses are based on a limited recent sample, and the wording now says so — "no replies found in this sample" instead of the old, and sometimes wrong, "has never replied to anyone."</li>
+      <li>🐛 Fixed a bug where a slow analysis could render under the <em>wrong</em> person's name if you opened a second profile while the first was still loading.</li>
+      <li>🧹 Fixed background tabs that could occasionally be left open invisibly, and made post-scraping robust against posts containing bracket characters.</li>
+      <li>💸 Capped how much text each analysis sends, so an unusually wordy profile can't quietly cost several times a normal lookup.</li>
+      <li>🛡️ Assorted hardening: stricter validation of internal messages, and escaping of every value that reaches the card.</li>
+    </ul>
+  </section>
+
+  <section>
     <h2>v0.2.3 · July 2, 2026</h2>
     <ul>
       <li>🔒 Security hardening: profile bios and AI output are now fully escaped before display, closing a script-injection hole. External profile links are restricted to http(s).</li>
@@ -64,7 +77,7 @@
     <nav>
       <a href="index.html">Home</a> ·
       <a href="known-issues.html">Known issues</a> ·
-      <a href="how-to-test.html">How to test</a> ·
+      <a href="how-to-test.html">Install &amp; setup</a> ·
       <a href="faq.html">FAQ</a> ·
       <a href="privacy.html">Privacy policy</a>
     </nav>

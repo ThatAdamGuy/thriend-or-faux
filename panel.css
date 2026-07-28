@@ -434,6 +434,14 @@
   line-height: 1.5;
   margin-bottom: 6px;
 }
+/* Private-account confirmation gate */
+.tof-private-warn p { margin: 0 0 8px; font-size: 13px; line-height: 1.5; color: #444; }
+.tof-private-warn strong { color: #b83a00; }
+.tof-private-actions { display: flex; gap: 8px; }
+.tof-private-actions .tof-analyze-btn { margin-top: 4px; }
+.tof-btn-secondary { background: #e8e8e8; color: #333; }
+.tof-btn-secondary:hover:not(:disabled) { background: #dcdcdc; }
+
 .tof-replies-line {
   font-size: 12px;
   color: #666;

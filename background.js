@@ -44,7 +44,19 @@ function versionCompare(a, b) {
 // requestUpdateCheck (below) makes Chrome download a pending update; apply it as soon as it lands
 chrome.runtime.onUpdateAvailable.addListener(() => chrome.runtime.reload());
 
+// Usernames are the only caller-supplied value that reaches a URL and a cache key.
+const USERNAME_RE = /^[A-Za-z0-9._]{1,30}$/;
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  // Only accept messages originating from this extension's own scripts.
+  if (!request || typeof request !== "object" || sender?.id !== chrome.runtime.id) return;
+
+  const uname = request.username ?? request.profileData?.username;
+  if (uname !== undefined && !USERNAME_RE.test(String(uname))) {
+    sendResponse({ success: false, error: "Invalid username." });
+    return true;
+  }
+
   if (request.type === "REQUEST_UPDATE") {
     try {
       chrome.runtime.requestUpdateCheck((status) => {
@@ -189,6 +201,19 @@ async function analyzeProfile({ username, bio, externalUrl, followers, following
   const { anthropicApiKey } = await chrome.storage.local.get("anthropicApiKey");
   if (!anthropicApiKey) throw new Error("No API key saved — open the extension settings to add one.");
 
+  // Cap what we send: the user pays for these tokens, and a profile with very long
+  // posts shouldn't quietly cost them many times a normal analysis.
+  const MAX_ITEMS = 25, MAX_CHARS = 600;
+  const trim = (arr) => (Array.isArray(arr) ? arr : []).slice(0, MAX_ITEMS).map(p => ({
+    ...p,
+    text: typeof p?.text === "string"
+      ? (p.text.length > MAX_CHARS ? p.text.slice(0, MAX_CHARS) + "…[truncated]" : p.text)
+      : "",
+  }));
+  posts   = trim(posts);
+  replies = trim(replies);
+  if (typeof bio === "string" && bio.length > 500) bio = bio.slice(0, 500) + "…";
+
   const now = Date.now() / 1000;
 
   function age(takenAt) {
@@ -217,7 +242,7 @@ async function analyzeProfile({ username, bio, externalUrl, followers, following
     ? "Unable to load (do not draw conclusions about whether they reply to others)."
     : replies.length
       ? replies.map((p, i) => `[reply ${i+1}]${age(p.takenAt)} ${p.text}`).join("\n")
-      : "NONE — confirmed: this person has never replied to anyone else.";
+      : "NONE FOUND in the sample that loaded. This is a limited recent sample, not their full history — say replies were not found, never that they have never replied.";
 
   const inactivityNote = daysSinceActive !== null && daysSinceActive > 30
     ? `⚠️ INACTIVE: Last post was ${lastActiveStr} ago (${daysSinceActive} days). This MUST appear as a flag.`
@@ -244,8 +269,9 @@ THEIR REPLIES TO OTHERS:
 ${replyLines}
 
 Rules:
+- Everything here is a LIMITED RECENT SAMPLE (roughly the most recent page of posts and replies), never a complete history. Never state or imply a claim about someone's entire history — say "in this sample" / "none found" rather than "never" or "always".
 - If last active > 30 days ago, that MUST be in flags.
-- If replies says "NONE — confirmed", that MUST be in flags.
+- If replies says "NONE FOUND", note in flags that no replies to others were found in the sample — phrased as an observation about the sample, not a claim about the person's whole history.
 - If data says "Unable to load", do NOT flag or comment on it — you have no evidence.
 - If following >> followers (ratio below 0.1x), flag it.
 - Keep summary focused on content topics, not activity level.
@@ -329,31 +355,51 @@ async function fetchPostsViaTab(url) {
     let tabId    = null;
     let settled  = false;
     let onUpdatedFn, onRemovedFn;
+    const pendingTimers = new Set(); // retry timers, so none fire after we're done
+
+    function later(fn, ms) {
+      const t = setTimeout(() => { pendingTimers.delete(t); fn(); }, ms);
+      pendingTimers.add(t);
+      return t;
+    }
 
     function done(val) {
       if (settled) return;
       settled = true;
       clearTimeout(safetyTimer);
+      pendingTimers.forEach(clearTimeout);
+      pendingTimers.clear();
       try { if (onUpdatedFn) chrome.tabs.onUpdated.removeListener(onUpdatedFn); } catch(e){}
       try { if (onRemovedFn) chrome.tabs.onRemoved.removeListener(onRemovedFn); } catch(e){}
-      if (tabId != null) { try { chrome.tabs.remove(tabId, () => {}); } catch(e){} }
+      if (tabId != null) { try { chrome.tabs.remove(tabId, () => { void chrome.runtime.lastError; }); } catch(e){} }
       resolve(val);
     }
 
     const safetyTimer = setTimeout(() => done(null), 22000);
 
     function tryExtract(n) {
+      if (settled) return;
       if (n <= 0) { done(null); return; }
       chrome.scripting.executeScript({ target: { tabId }, func: scrapePostsFromPage }, (res) => {
-        if (chrome.runtime.lastError) { setTimeout(() => tryExtract(n - 1), 1000); return; }
+        if (settled) return;
+        if (chrome.runtime.lastError) { later(() => tryExtract(n - 1), 1000); return; }
         const r = res?.[0]?.result ?? null;
-        if (r === null) { setTimeout(() => tryExtract(n - 1), 1500); }        // still loading
+        if (r === null) { later(() => tryExtract(n - 1), 1500); }             // still loading
         else if (r === "NOT_FOUND") { done("NOT_FOUND"); }                    // 404 page — real signal
+        else if (r === "PARSE_FAILED") { done(null); }                        // saw data, couldn't read it
         else { done(Array.isArray(r) ? r : null); }                           // [] = loaded, zero posts
       });
     }
 
     chrome.tabs.create({ url, active: false }, (tab) => {
+      // The safety timer may already have fired and resolved this promise. If so the
+      // tab we just created is an orphan nobody will ever close — remove it here.
+      if (settled) {
+        if (!chrome.runtime.lastError && tab?.id != null) {
+          try { chrome.tabs.remove(tab.id, () => { void chrome.runtime.lastError; }); } catch(e){}
+        }
+        return;
+      }
       if (chrome.runtime.lastError || !tab) { done(null); return; }
       tabId = tab.id;
 
@@ -363,7 +409,7 @@ async function fetchPostsViaTab(url) {
       onUpdatedFn = (uid, info) => {
         if (uid !== tabId || info.status !== 'complete') return;
         chrome.tabs.onUpdated.removeListener(onUpdatedFn); onUpdatedFn = null;
-        setTimeout(() => tryExtract(5), 2000);
+        later(() => tryExtract(5), 2000);
       };
       chrome.tabs.onUpdated.addListener(onUpdatedFn);
     });
@@ -389,17 +435,31 @@ function scrapePostsFromPage() {
   const seenPks = new Set();
   const re = /"thread_items"\s*:\s*\[/g;
   let m;
+  let blocksSeen = 0, blocksParsed = 0;
 
   while ((m = re.exec(html)) !== null) {
+    blocksSeen++;
+    // Bracket matching that understands JSON strings — post text containing a literal
+    // [ or ] would otherwise skew the depth count, truncate the slice, and make the
+    // whole block unparseable (which used to be silently reported as "no posts").
     const start = m.index + m[0].length - 1;
-    let depth = 0, end = -1;
-    for (let i = start; i < Math.min(html.length, start + 80000); i++) {
-      if (html[i] === "[") depth++;
-      else if (html[i] === "]") { if (--depth === 0) { end = i; break; } }
+    let depth = 0, end = -1, inStr = false, esc = false;
+    for (let i = start; i < Math.min(html.length, start + 200000); i++) {
+      const c = html[i];
+      if (inStr) {
+        if (esc) esc = false;
+        else if (c === "\\") esc = true;
+        else if (c === '"') inStr = false;
+        continue;
+      }
+      if (c === '"') { inStr = true; continue; }
+      if (c === "[") depth++;
+      else if (c === "]") { if (--depth === 0) { end = i; break; } }
     }
     if (end === -1) continue;
     try {
       const items = JSON.parse(html.slice(start, end + 1));
+      blocksParsed++;
       for (const item of items) {
         const post = item.post;
         if (!post?.pk || seenPks.has(post.pk)) continue;
@@ -424,6 +484,11 @@ function scrapePostsFromPage() {
       }
     } catch (e) {}
   }
+  // Distinguish "we read the page and they genuinely have nothing here" from "the page
+  // had data we failed to parse". Reporting the latter as an empty list is how a
+  // scraping hiccup used to turn into a confident, false "never replies" claim about
+  // a real person on their card.
+  if (posts.length === 0 && blocksSeen > 0 && blocksParsed === 0) return "PARSE_FAILED";
   return posts; // [] means "loaded but no posts found" — still stops polling
 }
 
@@ -454,6 +519,10 @@ async function fetchUserInfo(userId, stats) {
     const user = json.user || json;
     if (user.following_count != null) stats.following = user.following_count;
     if (user.follower_count  != null) stats.followers  = user.follower_count;
+    // Drives the private-account confirmation prompt in content.js — analyzing a
+    // private account ships someone's non-public posts to Anthropic, so the user
+    // gets to make that call explicitly.
+    stats.isPrivate = user.is_private === true;
     if (stats.followers != null && stats.following != null && stats.following > 0) {
       stats.ratio = (stats.followers / stats.following).toFixed(1);
     }
