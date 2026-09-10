@@ -5,7 +5,7 @@
 // flip killSwitch in docs/status.json and every install goes quiet within the TTL.
 // Fail-open: a failed fetch never disables anything — only an explicit true does.
 
-const STATUS_URL    = "https://thatadamguy.github.io/thriend-or-faux/status.json";
+const STATUS_URL    = "https://thriendorfaux.com/status.json"; // must be the final host: the github.io 301 has no CORS header, so fetch() from the SW is blocked on the redirect
 const STATUS_TTL_MS = 6 * 60 * 60 * 1000;
 
 async function refreshRemoteStatus() {

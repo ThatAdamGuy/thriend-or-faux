@@ -38,7 +38,7 @@ Chrome MV3 extension for **threads.com** by Adam (@thatadamguy on Threads). Hove
 ## Status & plans (as of July 2 2026)
 
 - **Chrome Web Store: v0.2.1 approved, then v0.2.3 submitted and also approved** (Private visibility, tester group, non-trader) — v0.2.3 is the live store version; listing not yet publicized to testers.
-- Site LIVE at custom domain **https://thriendorfaux.com** (old https://thatadamguy.github.io/thriend-or-faux/ URL still resolves/redirects — kept as the internal kill-switch fetch target in background.js for durability).
+- Site LIVE at custom domain **https://thriendorfaux.com** (old https://thatadamguy.github.io/thriend-or-faux/ URL still resolves/redirects — NOT usable as the kill-switch fetch target: its 301 to the custom domain has no CORS header, so the SW fetch fails; STATUS_URL points at thriendorfaux.com directly).
 - `docs/status.json` is correctly synced: `latestVersion`/`minVersion` both `"0.2.3"`.
 - **Working tree is v0.2.4** — one small change ahead of the approved v0.2.3 store listing: ThriendOrFaux.com branding added to the card footer + settings popup. Not yet uploaded; no rush, can ride along with the next batch of changes.
 - Deferred ideas: "Analyze me" self-card, positive-only shareable card images.
