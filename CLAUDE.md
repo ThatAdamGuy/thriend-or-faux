@@ -35,10 +35,11 @@ Chrome MV3 extension for **threads.com** by Adam (@thatadamguy on Threads). Hove
 - Atlas browser support was dropped deliberately (its `tabs.create` callback is broken; Atlas is deprecated).
 - Reload extension via chrome://extensions ↻ after edits; check `[ToF] loaded` in the page console.
 
-## Status & plans (as of July 2 2026)
+## Status & plans (as of September 9 2026)
 
-- **Chrome Web Store: v0.2.1 approved, then v0.2.3 submitted and also approved** (Private visibility, tester group, non-trader) — v0.2.3 is the live store version; listing not yet publicized to testers.
-- Site LIVE at custom domain **https://thriendorfaux.com** (old https://thatadamguy.github.io/thriend-or-faux/ URL still resolves/redirects — NOT usable as the kill-switch fetch target: its 301 to the custom domain has no CORS header, so the SW fetch fails; STATUS_URL points at thriendorfaux.com directly).
-- `docs/status.json` is correctly synced: `latestVersion`/`minVersion` both `"0.2.3"`.
-- **Working tree is v0.2.4** — one small change ahead of the approved v0.2.3 store listing: ThriendOrFaux.com branding added to the card footer + settings popup. Not yet uploaded; no rush, can ride along with the next batch of changes.
+- **Chrome Web Store: PUBLIC listing, v0.9.1 approved and live** (public beta). Store URL: https://chromewebstore.google.com/detail/piobcmaphjfgmgpdidagoomnacpjoemj. v0.9.0 shipped with a bug that blanked the hover card (sender-id guard silently dropped messages); 0.9.1 fixes it and Chrome auto-updates installs.
+- Site LIVE at **https://thriendorfaux.com**. The old github.io URL 301s there WITHOUT a CORS header, so it must never be used as a fetch target from the extension; `STATUS_URL` points at thriendorfaux.com directly.
+- `docs/status.json`: `latestVersion` "0.9.1", `minVersion` "0.2.3". Keep `latestVersion` in sync with whatever the store has live.
+- Adam's local install is the UNPACKED working tree (extension ID piobcmaph…), so code edits take effect on ↻ in chrome://extensions — no store upload needed to test.
+- Chrome blocks extensions from scripting chrome://, chrome-extension://, and the Web Store dashboard, and computer-use gives browsers read-only tier: Claude cannot reload the extension, read the SW console, or drive the store dashboard. Adam does those; Claude can drive threads.com tabs and inspect the injected DOM.
 - Deferred ideas: "Analyze me" self-card, positive-only shareable card images.

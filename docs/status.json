@@ -1,7 +1,7 @@
 {
   "killSwitch": false,
   "killMessage": "Thriend or Faux has been switched off by its author. Details: https://thriendorfaux.com",
-  "latestVersion": "0.9.0",
+  "latestVersion": "0.9.1",
   "minVersion": "0.2.3",
   "updateNote": ""
 }
