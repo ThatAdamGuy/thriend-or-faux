@@ -238,13 +238,32 @@ function renderHoverPanel(card, updateAvailable) {
   }, 800);
 
   // Fetch profile stats (followers, ratio, thread count, bio)
+  // Never leave the rows on "…": if the worker doesn't answer (or answers with an
+  // error) say so on the card, with the reason, so failures are diagnosable.
+  let profileSettled = false;
+  const profileStall = setTimeout(() => {
+    if (profileSettled) return;
+    profileSettled = true;
+    markProfileUnavailable(fetchedId, "No reply from the extension's background worker — try reloading the page (or the extension).");
+  }, 20000);
+
   try {
     chrome.runtime.sendMessage({ type: "FETCH_PROFILE", username }, (response) => {
-      if (chrome.runtime.lastError) return;
+      if (profileSettled) return;
+      profileSettled = true;
+      clearTimeout(profileStall);
+      if (chrome.runtime.lastError) {
+        markProfileUnavailable(fetchedId, "Extension messaging error: " + chrome.runtime.lastError.message);
+        return;
+      }
+      if (!response?.success) {
+        markProfileUnavailable(fetchedId, response?.error || "Profile lookup failed.");
+        return;
+      }
       const container = document.getElementById(fetchedId);
       if (!container) return;
 
-      const d    = response?.success ? response.data : {};
+      const d    = response.data;
       const rows = container.querySelectorAll(".tof-card-row");
 
       function fill(row, value) {
@@ -275,7 +294,25 @@ function renderHoverPanel(card, updateAvailable) {
         safeZoneRect = computeSafeZone(rect, panel);
       }
     });
-  } catch (e) {}
+  } catch (e) {
+    profileSettled = true;
+    clearTimeout(profileStall);
+    markProfileUnavailable(fetchedId, "Extension error: " + (e?.message || String(e)));
+  }
+}
+
+// Turns every pending "…" in the hover card into "unavailable" and shows why.
+function markProfileUnavailable(fetchedId, reason) {
+  const container = document.getElementById(fetchedId);
+  if (!container) return;
+  container.querySelectorAll(".tof-card-value.tof-fetching").forEach(v => {
+    v.textContent = "unavailable";
+    v.classList.remove("tof-fetching");
+  });
+  const note = document.createElement("div");
+  note.className = "tof-card-note";
+  note.textContent = reason; // may echo error text — textContent, never innerHTML
+  container.appendChild(note);
 }
 
 function hidePanel() {

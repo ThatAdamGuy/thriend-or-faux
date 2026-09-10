@@ -48,8 +48,18 @@ chrome.runtime.onUpdateAvailable.addListener(() => chrome.runtime.reload());
 const USERNAME_RE = /^[A-Za-z0-9._]{1,30}$/;
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  // Only accept messages originating from this extension's own scripts.
-  if (!request || typeof request !== "object" || sender?.id !== chrome.runtime.id) return;
+  if (!request || typeof request !== "object") return;
+
+  // Only accept messages from this extension's own scripts. Chrome's docs make
+  // sender.id "if any", so also accept a sender whose page is threads.com (our
+  // content script's only host). Never fail silently: a listener that returns
+  // without responding closes the port and the caller hangs on "…" forever.
+  const senderUrl = sender?.url || sender?.tab?.url || "";
+  const trusted = sender?.id === chrome.runtime.id || /^https:\/\/www\.threads\.com\//.test(senderUrl);
+  if (!trusted) {
+    sendResponse({ success: false, error: "Rejected: untrusted sender." });
+    return true;
+  }
 
   const uname = request.username ?? request.profileData?.username;
   if (uname !== undefined && !USERNAME_RE.test(String(uname))) {
@@ -81,7 +91,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({ success: false, error: "This version of Thriend or Faux is out of date — please update the extension." });
       return;
     }
-    handleDataRequest(request, sendResponse);
+    try {
+      handleDataRequest(request, sendResponse);
+    } catch (e) {
+      sendResponse({ success: false, error: "Extension error: " + (e?.message || String(e)) });
+    }
+  }).catch((e) => {
+    // refreshRemoteStatus never rejects by design, but the caller must never hang.
+    sendResponse({ success: false, error: "Extension error: " + (e?.message || String(e)) });
   });
   return true;
 });

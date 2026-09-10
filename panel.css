@@ -63,6 +63,13 @@
   color: #111;
 }
 
+.tof-card-note {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #b83a00;
+  line-height: 1.4;
+}
+
 .tof-fetching {
   color: #aaa;
   font-style: italic;
